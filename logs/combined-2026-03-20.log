@@ -1,0 +1,36 @@
+2026-03-20 23:26:55 [INFO]: Starting Binance Signals Bot MVP... {"metadata":{}}
+2026-03-20 23:26:55 [INFO]: Scan Worker started {"metadata":{}}
+2026-03-20 23:26:55 [INFO]: Refreshing universe (Top-N symbols by 24h volume)... {"metadata":{}}
+2026-03-20 23:27:06 [ERROR]: Failed to get 24h ticker {"metadata":{"error":"aborted"}}
+2026-03-20 23:27:06 [ERROR]: Failed to refresh universe {"metadata":{"error":"aborted"}}
+2026-03-20 23:27:06 [INFO]: Scanning 0 symbols... {"metadata":{}}
+2026-03-20 23:27:06 [INFO]: Scan complete. {"metadata":{}}
+2026-03-20 23:27:55 [INFO]: Refreshing universe (Top-N symbols by 24h volume)... {"metadata":{}}
+2026-03-20 23:28:06 [ERROR]: Failed to get 24h ticker {"metadata":{"error":"aborted"}}
+2026-03-20 23:28:06 [ERROR]: Failed to refresh universe {"metadata":{"error":"aborted"}}
+2026-03-20 23:28:06 [INFO]: Scanning 0 symbols... {"metadata":{}}
+2026-03-20 23:28:06 [INFO]: Scan complete. {"metadata":{}}
+2026-03-20 23:28:55 [INFO]: Refreshing universe (Top-N symbols by 24h volume)... {"metadata":{}}
+2026-03-20 23:29:06 [ERROR]: Failed to get 24h ticker {"metadata":{"error":"aborted"}}
+2026-03-20 23:29:06 [ERROR]: Failed to refresh universe {"metadata":{"error":"aborted"}}
+2026-03-20 23:29:06 [INFO]: Scanning 0 symbols... {"metadata":{}}
+2026-03-20 23:29:06 [INFO]: Scan complete. {"metadata":{}}
+2026-03-20 23:29:52 [INFO]: Shutting down... {"metadata":{}}
+2026-03-20 23:29:52 [INFO]: Scan Worker stopping... {"metadata":{}}
+2026-03-20 23:29:53 [INFO]: Exiting process. {"metadata":{}}
+2026-03-20 23:30:25 [INFO]: Starting Binance Signals Bot MVP... {"metadata":{}}
+2026-03-20 23:30:25 [INFO]: Scan Worker started {"metadata":{}}
+2026-03-20 23:30:25 [INFO]: Refreshing universe (Top-N symbols by 24h volume)... {"metadata":{}}
+2026-03-20 23:30:55 [WARN]: [get24hTicker] attempt 1/3 failed: aborted (status: N/A) {"metadata":{}}
+2026-03-20 23:30:55 [INFO]: [get24hTicker] retrying in 2000ms... {"metadata":{}}
+2026-03-20 23:31:30 [WARN]: [get24hTicker] attempt 2/3 failed: aborted (status: N/A) {"metadata":{}}
+2026-03-20 23:31:30 [INFO]: [get24hTicker] retrying in 4000ms... {"metadata":{}}
+2026-03-20 23:32:05 [WARN]: [get24hTicker] attempt 3/3 failed: aborted (status: N/A) {"metadata":{}}
+2026-03-20 23:32:05 [ERROR]: Failed to refresh universe {"metadata":{"error":"aborted"}}
+2026-03-20 23:32:05 [INFO]: Scanning 0 symbols... {"metadata":{}}
+2026-03-20 23:32:05 [INFO]: Scan complete. {"metadata":{}}
+2026-03-20 23:32:05 [INFO]: Refreshing universe (Top-N symbols by 24h volume)... {"metadata":{}}
+2026-03-20 23:32:35 [WARN]: [get24hTicker] attempt 1/3 failed: aborted (status: N/A) {"metadata":{}}
+2026-03-20 23:32:35 [INFO]: [get24hTicker] retrying in 2000ms... {"metadata":{}}
+2026-03-20 23:33:08 [WARN]: [get24hTicker] attempt 2/3 failed: aborted (status: N/A) {"metadata":{}}
+2026-03-20 23:33:08 [INFO]: [get24hTicker] retrying in 4000ms... {"metadata":{}}

@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  signals-bot:
+    build: .
+    container_name: binance-signals-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+      - state-data:/app/state
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  state-data:

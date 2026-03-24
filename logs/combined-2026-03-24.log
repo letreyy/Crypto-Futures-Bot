@@ -1,0 +1,728 @@
+2026-03-24 20:44:30 [INFO]: Starting Binance Signals Bot MVP... {"metadata":{}}
+2026-03-24 20:44:30 [INFO]: Scan Worker started {"metadata":{}}
+2026-03-24 20:44:30 [INFO]: Refreshing universe (Top-N symbols by 24h volume)... {"metadata":{}}
+2026-03-24 20:44:30 [INFO]: Universe updated. Top 30 symbols loaded. {"metadata":{}}
+2026-03-24 20:44:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 20:44:31 [INFO]: Signal sent for BTCUSDT via Momentum Breakout {"metadata":{}}
+2026-03-24 20:44:32 [INFO]: Signal sent for XAUUSDT via Liquidity Sweep {"metadata":{}}
+2026-03-24 20:44:35 [INFO]: Signal sent for DOGEUSDT via Momentum Breakout {"metadata":{}}
+2026-03-24 20:44:38 [INFO]: Signal sent for 1000PEPEUSDT via Momentum Breakout {"metadata":{}}
+2026-03-24 20:44:39 [INFO]: Signal sent for CRCLUSDT via VWAP Reversion {"metadata":{}}
+2026-03-24 20:44:39 [INFO]: Signal sent for DOTUSDT via Momentum Breakout {"metadata":{}}
+2026-03-24 20:44:40 [INFO]: Signal sent for ADAUSDT via Momentum Breakout {"metadata":{}}
+2026-03-24 20:44:41 [INFO]: Signal sent for FILUSDT via EMA Pullback {"metadata":{}}
+2026-03-24 20:44:42 [INFO]: Signal sent for LINKUSDT via Momentum Breakout {"metadata":{}}
+2026-03-24 20:44:42 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 20:45:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 20:45:39 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 20:46:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 20:46:30 [INFO]: Signal sent for BTCUSDT via Liquidity Sweep {"metadata":{}}
+2026-03-24 20:46:32 [INFO]: Signal sent for XAGUSDT via Liquidity Sweep {"metadata":{}}
+2026-03-24 20:46:34 [INFO]: Signal sent for ONTUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 20:46:35 [INFO]: Signal sent for PAXGUSDT via Liquidity Sweep {"metadata":{}}
+2026-03-24 20:46:38 [INFO]: Signal sent for PIPPINUSDT via VWAP Reversion {"metadata":{}}
+2026-03-24 20:46:38 [INFO]: Signal sent for PIPPINUSDT via Liquidity Sweep {"metadata":{}}
+2026-03-24 20:46:40 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 20:47:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 20:47:41 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 20:48:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 20:48:36 [INFO]: Signal sent for ZECUSDT via Liquidity Sweep {"metadata":{}}
+2026-03-24 20:48:38 [INFO]: Signal sent for FILUSDT via Liquidity Sweep {"metadata":{}}
+2026-03-24 20:48:39 [INFO]: Signal sent for SUIUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 20:48:40 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 20:49:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 20:49:35 [INFO]: Signal sent for HYPEUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 20:49:36 [INFO]: Signal sent for ZECUSDT via EMA Pullback {"metadata":{}}
+2026-03-24 20:49:38 [INFO]: Signal sent for DOTUSDT via EMA Pullback {"metadata":{}}
+2026-03-24 20:49:38 [INFO]: Signal sent for DOTUSDT via Liquidity Sweep {"metadata":{}}
+2026-03-24 20:49:40 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 20:50:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 20:50:41 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 20:51:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 20:51:33 [INFO]: Signal sent for RIVERUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 20:51:40 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 20:52:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 20:52:42 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 20:53:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 20:53:41 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 20:54:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 20:54:40 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 20:55:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 20:55:31 [INFO]: Signal sent for XAUUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 20:55:35 [INFO]: Signal sent for PAXGUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 20:55:37 [INFO]: Signal sent for BRUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 20:55:37 [INFO]: Signal sent for CRCLUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 20:55:40 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 20:56:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 20:56:42 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 20:57:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 20:57:41 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 20:58:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 20:58:39 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 20:59:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 20:59:36 [INFO]: Signal sent for BRUSDT via Momentum Breakout {"metadata":{}}
+2026-03-24 20:59:39 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:00:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:00:38 [INFO]: Signal sent for BRUSDT via VWAP Reversion {"metadata":{}}
+2026-03-24 21:00:40 [INFO]: Signal sent for PIPPINUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:00:41 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:01:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:01:36 [INFO]: Signal sent for BRUSDT via Liquidity Sweep {"metadata":{}}
+2026-03-24 21:01:36 [INFO]: Signal sent for BRUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 21:01:40 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:02:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:02:31 [INFO]: Signal sent for ETHUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:02:38 [INFO]: Signal sent for APTUSDT via EMA Pullback {"metadata":{}}
+2026-03-24 21:02:39 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:03:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:03:37 [INFO]: Signal sent for DOTUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:03:39 [INFO]: Signal sent for APTUSDT via Momentum Breakout {"metadata":{}}
+2026-03-24 21:03:40 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:04:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:04:37 [INFO]: Signal sent for ONTUSDT via EMA Pullback {"metadata":{}}
+2026-03-24 21:04:42 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:05:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:05:31 [INFO]: Signal sent for BTCUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:05:32 [INFO]: Signal sent for SOLUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:05:33 [INFO]: Signal sent for XAGUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:05:33 [INFO]: Signal sent for TAOUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:05:40 [INFO]: Signal sent for FILUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:05:41 [INFO]: Signal sent for LINKUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:05:41 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:06:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:06:39 [INFO]: Signal sent for SUIUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:06:40 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:07:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:07:42 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:08:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:08:41 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:09:30 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:09:35 [INFO]: Signal sent for HYPEUSDT via EMA Pullback {"metadata":{}}
+2026-03-24 21:09:40 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:26:32 [INFO]: Starting Binance Signals Bot MVP... {"metadata":{}}
+2026-03-24 21:26:32 [INFO]: Scan Worker started {"metadata":{}}
+2026-03-24 21:26:32 [INFO]: Refreshing universe (Top-N symbols by 24h volume)... {"metadata":{}}
+2026-03-24 21:26:36 [INFO]: Universe updated. Top 30 symbols loaded. {"metadata":{}}
+2026-03-24 21:26:36 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:26:39 [WARN]: [getOpenInterest(ALPACAUSDT)] attempt 1/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:26:39 [INFO]: [getOpenInterest(ALPACAUSDT)] retrying in 2000ms... {"metadata":{}}
+2026-03-24 21:26:42 [WARN]: [getOpenInterest(ALPACAUSDT)] attempt 2/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:26:42 [INFO]: [getOpenInterest(ALPACAUSDT)] retrying in 4000ms... {"metadata":{}}
+2026-03-24 21:26:46 [WARN]: [getOpenInterest(ALPACAUSDT)] attempt 3/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:26:46 [ERROR]: Failed to get open interest for ALPACAUSDT {"metadata":{"error":"Request failed with status code 400"}}
+2026-03-24 21:26:50 [WARN]: [getOpenInterest(BNXUSDT)] attempt 1/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:26:50 [INFO]: [getOpenInterest(BNXUSDT)] retrying in 2000ms... {"metadata":{}}
+2026-03-24 21:26:53 [WARN]: [getOpenInterest(BNXUSDT)] attempt 2/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:26:53 [INFO]: [getOpenInterest(BNXUSDT)] retrying in 4000ms... {"metadata":{}}
+2026-03-24 21:26:57 [WARN]: [getOpenInterest(BNXUSDT)] attempt 3/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:26:57 [ERROR]: Failed to get open interest for BNXUSDT {"metadata":{"error":"Request failed with status code 400"}}
+2026-03-24 21:26:59 [WARN]: [getOpenInterest(ALPHAUSDT)] attempt 1/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:26:59 [INFO]: [getOpenInterest(ALPHAUSDT)] retrying in 2000ms... {"metadata":{}}
+2026-03-24 21:27:01 [WARN]: [getOpenInterest(ALPHAUSDT)] attempt 2/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:27:01 [INFO]: [getOpenInterest(ALPHAUSDT)] retrying in 4000ms... {"metadata":{}}
+2026-03-24 21:27:05 [WARN]: [getOpenInterest(ALPHAUSDT)] attempt 3/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:27:05 [ERROR]: Failed to get open interest for ALPHAUSDT {"metadata":{"error":"Request failed with status code 400"}}
+2026-03-24 21:27:07 [INFO]: Signal sent for BNBUSDT via Liquidity Sweep {"metadata":{}}
+2026-03-24 21:27:07 [INFO]: [PAPER TRADE] Would execute SHORT on BNBUSDT at 629.85 {"metadata":{}}
+2026-03-24 21:27:07 [INFO]: Signal sent for BNBUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 21:27:07 [INFO]: [PAPER TRADE] Would execute SHORT on BNBUSDT at 629.85 {"metadata":{}}
+2026-03-24 21:27:08 [INFO]: Signal sent for CRCLUSDT via Liquidity Sweep {"metadata":{}}
+2026-03-24 21:27:08 [INFO]: [PAPER TRADE] Would execute SHORT on CRCLUSDT at 103.23 {"metadata":{}}
+2026-03-24 21:27:09 [INFO]: Signal sent for CRCLUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 21:27:09 [INFO]: [PAPER TRADE] Would execute SHORT on CRCLUSDT at 103.23 {"metadata":{}}
+2026-03-24 21:27:09 [WARN]: [getOpenInterest(PORT3USDT)] attempt 1/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:27:09 [INFO]: [getOpenInterest(PORT3USDT)] retrying in 2000ms... {"metadata":{}}
+2026-03-24 21:27:11 [WARN]: [getOpenInterest(PORT3USDT)] attempt 2/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:27:11 [INFO]: [getOpenInterest(PORT3USDT)] retrying in 4000ms... {"metadata":{}}
+2026-03-24 21:27:15 [WARN]: [getOpenInterest(PORT3USDT)] attempt 3/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:27:15 [ERROR]: Failed to get open interest for PORT3USDT {"metadata":{"error":"Request failed with status code 400"}}
+2026-03-24 21:27:20 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:27:32 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:27:36 [WARN]: [getOpenInterest(ALPACAUSDT)] attempt 1/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:27:36 [INFO]: [getOpenInterest(ALPACAUSDT)] retrying in 2000ms... {"metadata":{}}
+2026-03-24 21:27:38 [WARN]: [getOpenInterest(ALPACAUSDT)] attempt 2/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:27:38 [INFO]: [getOpenInterest(ALPACAUSDT)] retrying in 4000ms... {"metadata":{}}
+2026-03-24 21:27:42 [WARN]: [getOpenInterest(ALPACAUSDT)] attempt 3/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:27:42 [ERROR]: Failed to get open interest for ALPACAUSDT {"metadata":{"error":"Request failed with status code 400"}}
+2026-03-24 21:27:46 [INFO]: Signal sent for TAOUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:27:46 [INFO]: [PAPER TRADE] Would execute LONG on TAOUSDT at 318.72 {"metadata":{}}
+2026-03-24 21:27:47 [WARN]: [getOpenInterest(BNXUSDT)] attempt 1/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:27:47 [INFO]: [getOpenInterest(BNXUSDT)] retrying in 2000ms... {"metadata":{}}
+2026-03-24 21:27:49 [WARN]: [getOpenInterest(BNXUSDT)] attempt 2/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:27:49 [INFO]: [getOpenInterest(BNXUSDT)] retrying in 4000ms... {"metadata":{}}
+2026-03-24 21:27:54 [WARN]: [getOpenInterest(BNXUSDT)] attempt 3/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:27:54 [ERROR]: Failed to get open interest for BNXUSDT {"metadata":{"error":"Request failed with status code 400"}}
+2026-03-24 21:27:58 [WARN]: [getOpenInterest(ALPHAUSDT)] attempt 1/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:27:58 [INFO]: [getOpenInterest(ALPHAUSDT)] retrying in 2000ms... {"metadata":{}}
+2026-03-24 21:28:00 [WARN]: [getOpenInterest(ALPHAUSDT)] attempt 2/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:28:00 [INFO]: [getOpenInterest(ALPHAUSDT)] retrying in 4000ms... {"metadata":{}}
+2026-03-24 21:28:05 [WARN]: [getOpenInterest(ALPHAUSDT)] attempt 3/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:28:05 [ERROR]: Failed to get open interest for ALPHAUSDT {"metadata":{"error":"Request failed with status code 400"}}
+2026-03-24 21:28:06 [INFO]: Signal sent for ZECUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:28:06 [INFO]: [PAPER TRADE] Would execute LONG on ZECUSDT at 225.58 {"metadata":{}}
+2026-03-24 21:28:07 [WARN]: [getOpenInterest(PORT3USDT)] attempt 1/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:28:07 [INFO]: [getOpenInterest(PORT3USDT)] retrying in 2000ms... {"metadata":{}}
+2026-03-24 21:28:09 [WARN]: [getOpenInterest(PORT3USDT)] attempt 2/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:28:09 [INFO]: [getOpenInterest(PORT3USDT)] retrying in 4000ms... {"metadata":{}}
+2026-03-24 21:28:13 [WARN]: [getOpenInterest(PORT3USDT)] attempt 3/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:28:13 [ERROR]: Failed to get open interest for PORT3USDT {"metadata":{"error":"Request failed with status code 400"}}
+2026-03-24 21:28:16 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:28:32 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:28:34 [WARN]: [getOpenInterest(ALPACAUSDT)] attempt 1/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:28:34 [INFO]: [getOpenInterest(ALPACAUSDT)] retrying in 2000ms... {"metadata":{}}
+2026-03-24 21:28:36 [WARN]: [getOpenInterest(ALPACAUSDT)] attempt 2/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:28:36 [INFO]: [getOpenInterest(ALPACAUSDT)] retrying in 4000ms... {"metadata":{}}
+2026-03-24 21:28:40 [WARN]: [getOpenInterest(ALPACAUSDT)] attempt 3/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:28:40 [ERROR]: Failed to get open interest for ALPACAUSDT {"metadata":{"error":"Request failed with status code 400"}}
+2026-03-24 21:28:43 [WARN]: [getOpenInterest(BNXUSDT)] attempt 1/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:28:43 [INFO]: [getOpenInterest(BNXUSDT)] retrying in 2000ms... {"metadata":{}}
+2026-03-24 21:28:45 [WARN]: [getOpenInterest(BNXUSDT)] attempt 2/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:28:45 [INFO]: [getOpenInterest(BNXUSDT)] retrying in 4000ms... {"metadata":{}}
+2026-03-24 21:28:49 [WARN]: [getOpenInterest(BNXUSDT)] attempt 3/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:28:49 [ERROR]: Failed to get open interest for BNXUSDT {"metadata":{"error":"Request failed with status code 400"}}
+2026-03-24 21:28:51 [WARN]: [getOpenInterest(ALPHAUSDT)] attempt 1/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:28:51 [INFO]: [getOpenInterest(ALPHAUSDT)] retrying in 2000ms... {"metadata":{}}
+2026-03-24 21:28:53 [WARN]: [getOpenInterest(ALPHAUSDT)] attempt 2/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:28:53 [INFO]: [getOpenInterest(ALPHAUSDT)] retrying in 4000ms... {"metadata":{}}
+2026-03-24 21:28:57 [WARN]: [getOpenInterest(ALPHAUSDT)] attempt 3/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:28:57 [ERROR]: Failed to get open interest for ALPHAUSDT {"metadata":{"error":"Request failed with status code 400"}}
+2026-03-24 21:29:02 [WARN]: [getOpenInterest(PORT3USDT)] attempt 1/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:29:02 [INFO]: [getOpenInterest(PORT3USDT)] retrying in 2000ms... {"metadata":{}}
+2026-03-24 21:29:04 [WARN]: [getOpenInterest(PORT3USDT)] attempt 2/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:29:04 [INFO]: [getOpenInterest(PORT3USDT)] retrying in 4000ms... {"metadata":{}}
+2026-03-24 21:29:08 [WARN]: [getOpenInterest(PORT3USDT)] attempt 3/3 failed: Symbol is on delivering or delivered or settling or closed or pre-trading. (status: 400) {"metadata":{}}
+2026-03-24 21:29:08 [ERROR]: Failed to get open interest for PORT3USDT {"metadata":{"error":"Request failed with status code 400"}}
+2026-03-24 21:29:12 [INFO]: Shutting down... {"metadata":{}}
+2026-03-24 21:29:12 [INFO]: Scan Worker stopping... {"metadata":{}}
+2026-03-24 21:29:13 [INFO]: Exiting process. {"metadata":{}}
+2026-03-24 21:32:57 [INFO]: Starting Binance Signals Bot MVP... {"metadata":{}}
+2026-03-24 21:32:57 [INFO]: Scan Worker started {"metadata":{}}
+2026-03-24 21:32:57 [INFO]: Refreshing universe (Top-N symbols by 24h volume)... {"metadata":{}}
+2026-03-24 21:32:58 [INFO]: Universe updated. Top 30 symbols loaded. {"metadata":{}}
+2026-03-24 21:32:58 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:33:01 [INFO]: Signal sent for TAOUSDT via EMA Ribbon Scalp {"metadata":{}}
+2026-03-24 21:33:01 [INFO]: [PAPER TRADE] Would execute LONG on TAOUSDT at 319.71 {"metadata":{}}
+2026-03-24 21:33:07 [INFO]: Signal sent for ZECUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 21:33:07 [INFO]: [PAPER TRADE] Would execute SHORT on ZECUSDT at 226.27 {"metadata":{}}
+2026-03-24 21:33:09 [INFO]: Signal sent for APTUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:33:09 [INFO]: [PAPER TRADE] Would execute LONG on APTUSDT at 1.0357 {"metadata":{}}
+2026-03-24 21:33:11 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:33:57 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:33:59 [INFO]: Signal sent for XAGUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 21:33:59 [INFO]: [PAPER TRADE] Would execute SHORT on XAGUSDT at 69.94 {"metadata":{}}
+2026-03-24 21:34:00 [INFO]: Signal sent for TAOUSDT via OI Divergence {"metadata":{}}
+2026-03-24 21:34:00 [INFO]: [PAPER TRADE] Would execute SHORT on TAOUSDT at 321.6 {"metadata":{}}
+2026-03-24 21:34:07 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:34:57 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:35:01 [INFO]: Signal sent for RIVERUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 21:35:01 [INFO]: [PAPER TRADE] Would execute LONG on RIVERUSDT at 23.887 {"metadata":{}}
+2026-03-24 21:35:04 [INFO]: Signal sent for HYPEUSDT via Momentum Breakout {"metadata":{}}
+2026-03-24 21:35:04 [INFO]: [PAPER TRADE] Would execute LONG on HYPEUSDT at 39.698 {"metadata":{}}
+2026-03-24 21:35:06 [INFO]: Signal sent for BRUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:35:06 [INFO]: [PAPER TRADE] Would execute LONG on BRUSDT at 0.14063 {"metadata":{}}
+2026-03-24 21:35:10 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:35:57 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:36:09 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:36:57 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:37:00 [INFO]: Signal sent for TAOUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 21:37:00 [INFO]: [PAPER TRADE] Would execute SHORT on TAOUSDT at 322.09 {"metadata":{}}
+2026-03-24 21:37:00 [INFO]: Signal sent for SIRENUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:37:00 [INFO]: [PAPER TRADE] Would execute LONG on SIRENUSDT at 1.0215 {"metadata":{}}
+2026-03-24 21:37:10 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:37:57 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:38:00 [INFO]: Signal sent for RIVERUSDT via OI Divergence {"metadata":{}}
+2026-03-24 21:38:00 [INFO]: [PAPER TRADE] Would execute SHORT on RIVERUSDT at 24.144 {"metadata":{}}
+2026-03-24 21:38:04 [INFO]: Signal sent for CRCLUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 21:38:04 [INFO]: [PAPER TRADE] Would execute SHORT on CRCLUSDT at 104.26 {"metadata":{}}
+2026-03-24 21:38:07 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:38:57 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:39:08 [INFO]: Signal sent for LINKUSDT via Liquidity Sweep {"metadata":{}}
+2026-03-24 21:39:08 [INFO]: [PAPER TRADE] Would execute SHORT on LINKUSDT at 9.105 {"metadata":{}}
+2026-03-24 21:39:08 [INFO]: Signal sent for LINKUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 21:39:08 [INFO]: [PAPER TRADE] Would execute SHORT on LINKUSDT at 9.105 {"metadata":{}}
+2026-03-24 21:39:09 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:39:57 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:40:02 [INFO]: Signal sent for TAOUSDT via Momentum Breakout {"metadata":{}}
+2026-03-24 21:40:02 [INFO]: [PAPER TRADE] Would execute LONG on TAOUSDT at 325.26 {"metadata":{}}
+2026-03-24 21:40:03 [INFO]: Signal sent for XRPUSDT via Momentum Breakout {"metadata":{}}
+2026-03-24 21:40:03 [INFO]: [PAPER TRADE] Would execute LONG on XRPUSDT at 1.394 {"metadata":{}}
+2026-03-24 21:40:06 [INFO]: Signal sent for 1000PEPEUSDT via Momentum Breakout {"metadata":{}}
+2026-03-24 21:40:06 [INFO]: [PAPER TRADE] Would execute LONG on 1000PEPEUSDT at 0.0034332 {"metadata":{}}
+2026-03-24 21:40:09 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:40:57 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:41:08 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:41:57 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:41:59 [INFO]: Signal sent for XAUUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:41:59 [INFO]: [PAPER TRADE] Would execute LONG on XAUUSDT at 4412.37 {"metadata":{}}
+2026-03-24 21:42:00 [INFO]: Signal sent for XAGUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:42:00 [INFO]: [PAPER TRADE] Would execute LONG on XAGUSDT at 69.78 {"metadata":{}}
+2026-03-24 21:42:03 [INFO]: Signal sent for PAXGUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:42:03 [INFO]: [PAPER TRADE] Would execute LONG on PAXGUSDT at 4415.7 {"metadata":{}}
+2026-03-24 21:42:05 [INFO]: Signal sent for CRCLUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:42:05 [INFO]: [PAPER TRADE] Would execute LONG on CRCLUSDT at 103.91 {"metadata":{}}
+2026-03-24 21:42:09 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:42:57 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:42:58 [INFO]: Signal sent for BTCUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:42:58 [INFO]: [PAPER TRADE] Would execute LONG on BTCUSDT at 69464.3 {"metadata":{}}
+2026-03-24 21:42:58 [INFO]: Signal sent for ETHUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:42:58 [INFO]: [PAPER TRADE] Would execute LONG on ETHUSDT at 2118.45 {"metadata":{}}
+2026-03-24 21:42:59 [INFO]: Signal sent for SOLUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:42:59 [INFO]: [PAPER TRADE] Would execute LONG on SOLUSDT at 89.2 {"metadata":{}}
+2026-03-24 21:43:01 [INFO]: Signal sent for TAOUSDT via Liquidity Sweep {"metadata":{}}
+2026-03-24 21:43:01 [INFO]: [PAPER TRADE] Would execute SHORT on TAOUSDT at 323.78 {"metadata":{}}
+2026-03-24 21:43:02 [INFO]: Signal sent for RIVERUSDT via OI Divergence {"metadata":{}}
+2026-03-24 21:43:02 [INFO]: [PAPER TRADE] Would execute LONG on RIVERUSDT at 23.892 {"metadata":{}}
+2026-03-24 21:43:02 [INFO]: Signal sent for XRPUSDT via EMA Pullback {"metadata":{}}
+2026-03-24 21:43:02 [INFO]: [PAPER TRADE] Would execute SHORT on XRPUSDT at 1.3895 {"metadata":{}}
+2026-03-24 21:43:02 [INFO]: Signal sent for XRPUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:43:02 [INFO]: [PAPER TRADE] Would execute LONG on XRPUSDT at 1.3895 {"metadata":{}}
+2026-03-24 21:43:10 [INFO]: Signal sent for LINKUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:43:10 [INFO]: [PAPER TRADE] Would execute LONG on LINKUSDT at 9.084 {"metadata":{}}
+2026-03-24 21:43:10 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:43:57 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:44:04 [INFO]: Signal sent for HYPEUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:44:04 [INFO]: [PAPER TRADE] Would execute LONG on HYPEUSDT at 39.684 {"metadata":{}}
+2026-03-24 21:44:05 [INFO]: Signal sent for BNBUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:44:05 [INFO]: [PAPER TRADE] Would execute LONG on BNBUSDT at 630.78 {"metadata":{}}
+2026-03-24 21:44:09 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:44:57 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:45:10 [INFO]: Signal sent for ZECUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:45:10 [INFO]: [PAPER TRADE] Would execute LONG on ZECUSDT at 226.45 {"metadata":{}}
+2026-03-24 21:45:11 [INFO]: Signal sent for 1000PEPEUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:45:11 [INFO]: [PAPER TRADE] Would execute LONG on 1000PEPEUSDT at 0.0034231 {"metadata":{}}
+2026-03-24 21:45:12 [INFO]: Signal sent for DOTUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:45:12 [INFO]: [PAPER TRADE] Would execute LONG on DOTUSDT at 1.375 {"metadata":{}}
+2026-03-24 21:45:13 [INFO]: Signal sent for ADAUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:45:13 [INFO]: [PAPER TRADE] Would execute LONG on ADAUSDT at 0.2608 {"metadata":{}}
+2026-03-24 21:45:14 [INFO]: Signal sent for FILUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:45:14 [INFO]: [PAPER TRADE] Would execute LONG on FILUSDT at 0.911 {"metadata":{}}
+2026-03-24 21:45:15 [INFO]: Signal sent for SUIUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:45:15 [INFO]: [PAPER TRADE] Would execute LONG on SUIUSDT at 0.9355 {"metadata":{}}
+2026-03-24 21:45:15 [INFO]: Signal sent for LIGHTUSDT via EMA Ribbon Scalp {"metadata":{}}
+2026-03-24 21:45:15 [INFO]: [PAPER TRADE] Would execute SHORT on LIGHTUSDT at 0.2233 {"metadata":{}}
+2026-03-24 21:45:15 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:48:04 [INFO]: Starting Binance Signals Bot MVP... {"metadata":{}}
+2026-03-24 21:48:04 [INFO]: Scan Worker started {"metadata":{}}
+2026-03-24 21:48:04 [INFO]: Refreshing universe (Top-N symbols by 24h volume)... {"metadata":{}}
+2026-03-24 21:48:08 [INFO]: Universe updated. Top 30 symbols loaded. {"metadata":{}}
+2026-03-24 21:48:08 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:48:11 [INFO]: Signal sent for BTCUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:48:11 [INFO]: [PAPER TRADE] Opening LONG on BTCUSDT at 69460.9000 {"metadata":{}}
+2026-03-24 21:48:12 [INFO]: Signal sent for ETHUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:48:12 [INFO]: [PAPER TRADE] Opening LONG on ETHUSDT at 2118.4100 {"metadata":{}}
+2026-03-24 21:48:13 [INFO]: Signal sent for TAOUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:48:13 [INFO]: [PAPER TRADE] Opening LONG on TAOUSDT at 322.3600 {"metadata":{}}
+2026-03-24 21:48:14 [INFO]: Signal sent for RIVERUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 21:48:14 [INFO]: [PAPER TRADE] Opening LONG on RIVERUSDT at 23.9340 {"metadata":{}}
+2026-03-24 21:48:14 [INFO]: Signal sent for XRPUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:48:14 [INFO]: [PAPER TRADE] Opening LONG on XRPUSDT at 1.3887 {"metadata":{}}
+2026-03-24 21:48:15 [INFO]: Signal sent for DOGEUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:48:15 [INFO]: [PAPER TRADE] Opening LONG on DOGEUSDT at 0.0929 {"metadata":{}}
+2026-03-24 21:48:16 [INFO]: Signal sent for HYPEUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:48:16 [INFO]: [PAPER TRADE] Opening LONG on HYPEUSDT at 39.6630 {"metadata":{}}
+2026-03-24 21:48:17 [INFO]: Signal sent for BNBUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:48:17 [INFO]: [PAPER TRADE] Opening LONG on BNBUSDT at 630.6600 {"metadata":{}}
+2026-03-24 21:48:18 [INFO]: Signal sent for ZECUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:48:18 [INFO]: [PAPER TRADE] Opening LONG on ZECUSDT at 225.8800 {"metadata":{}}
+2026-03-24 21:48:18 [INFO]: Signal sent for 1000PEPEUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:48:18 [INFO]: [PAPER TRADE] Opening LONG on 1000PEPEUSDT at 0.0034 {"metadata":{}}
+2026-03-24 21:48:19 [INFO]: Signal sent for CRCLUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:48:19 [INFO]: [PAPER TRADE] Opening LONG on CRCLUSDT at 103.4100 {"metadata":{}}
+2026-03-24 21:48:20 [INFO]: Signal sent for DOTUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:48:20 [INFO]: [PAPER TRADE] Opening LONG on DOTUSDT at 1.3740 {"metadata":{}}
+2026-03-24 21:48:20 [INFO]: Signal sent for ADAUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:48:20 [INFO]: [PAPER TRADE] Opening LONG on ADAUSDT at 0.2606 {"metadata":{}}
+2026-03-24 21:48:21 [INFO]: Signal sent for APTUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:48:21 [INFO]: [PAPER TRADE] Opening LONG on APTUSDT at 1.0394 {"metadata":{}}
+2026-03-24 21:48:22 [INFO]: Signal sent for SUIUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:48:22 [INFO]: [PAPER TRADE] Opening LONG on SUIUSDT at 0.9351 {"metadata":{}}
+2026-03-24 21:48:22 [INFO]: Signal sent for LINKUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:48:22 [INFO]: [PAPER TRADE] Opening LONG on LINKUSDT at 9.0800 {"metadata":{}}
+2026-03-24 21:48:23 [INFO]: Signal sent for ENAUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:48:23 [INFO]: [PAPER TRADE] Opening LONG on ENAUSDT at 0.0932 {"metadata":{}}
+2026-03-24 21:48:23 [INFO]: Signal sent for LIGHTUSDT via EMA Ribbon Scalp {"metadata":{}}
+2026-03-24 21:48:23 [INFO]: [PAPER TRADE] Opening SHORT on LIGHTUSDT at 0.2231 {"metadata":{}}
+2026-03-24 21:48:23 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:49:04 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:49:31 [INFO]: Starting Binance Signals Bot MVP... {"metadata":{}}
+2026-03-24 21:49:31 [INFO]: Scan Worker started {"metadata":{}}
+2026-03-24 21:49:31 [INFO]: Refreshing universe (Top-N symbols by 24h volume)... {"metadata":{}}
+2026-03-24 21:49:31 [INFO]: Universe updated. Top 30 symbols loaded. {"metadata":{}}
+2026-03-24 21:49:31 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:49:32 [INFO]: Signal sent for BTCUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:49:32 [INFO]: [PAPER TRADE] Opening LONG on BTCUSDT at 69413.5000 {"metadata":{}}
+2026-03-24 21:49:33 [INFO]: Signal sent for ETHUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:49:33 [INFO]: [PAPER TRADE] Opening LONG on ETHUSDT at 2117.2700 {"metadata":{}}
+2026-03-24 21:49:35 [INFO]: Signal sent for TAOUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:49:35 [INFO]: [PAPER TRADE] Opening LONG on TAOUSDT at 321.5900 {"metadata":{}}
+2026-03-24 21:49:36 [INFO]: Signal sent for RIVERUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 21:49:36 [INFO]: [PAPER TRADE] Opening LONG on RIVERUSDT at 23.9450 {"metadata":{}}
+2026-03-24 21:49:36 [INFO]: Signal sent for XRPUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:49:36 [INFO]: [PAPER TRADE] Opening LONG on XRPUSDT at 1.3885 {"metadata":{}}
+2026-03-24 21:49:37 [INFO]: Signal sent for DOGEUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:49:37 [INFO]: [PAPER TRADE] Opening LONG on DOGEUSDT at 0.0929 {"metadata":{}}
+2026-03-24 21:49:38 [INFO]: Signal sent for HYPEUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:49:38 [INFO]: [PAPER TRADE] Opening LONG on HYPEUSDT at 39.5860 {"metadata":{}}
+2026-03-24 21:49:39 [INFO]: Signal sent for BNBUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:49:39 [INFO]: [PAPER TRADE] Opening LONG on BNBUSDT at 630.6600 {"metadata":{}}
+2026-03-24 21:49:40 [INFO]: Signal sent for ZECUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:49:40 [INFO]: [PAPER TRADE] Opening LONG on ZECUSDT at 225.5600 {"metadata":{}}
+2026-03-24 21:49:40 [INFO]: Signal sent for 1000PEPEUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:49:40 [INFO]: [PAPER TRADE] Opening LONG on 1000PEPEUSDT at 0.0034 {"metadata":{}}
+2026-03-24 21:49:41 [INFO]: Signal sent for CRCLUSDT via OI Divergence {"metadata":{}}
+2026-03-24 21:49:41 [INFO]: [PAPER TRADE] Opening LONG on CRCLUSDT at 103.1800 {"metadata":{}}
+2026-03-24 21:49:42 [INFO]: Signal sent for DOTUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:49:42 [INFO]: [PAPER TRADE] Opening LONG on DOTUSDT at 1.3740 {"metadata":{}}
+2026-03-24 21:49:42 [INFO]: Signal sent for ADAUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:49:42 [INFO]: [PAPER TRADE] Opening LONG on ADAUSDT at 0.2606 {"metadata":{}}
+2026-03-24 21:49:43 [INFO]: Signal sent for APTUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:49:43 [INFO]: [PAPER TRADE] Opening LONG on APTUSDT at 1.0399 {"metadata":{}}
+2026-03-24 21:49:44 [INFO]: Signal sent for SUIUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:49:44 [INFO]: [PAPER TRADE] Opening LONG on SUIUSDT at 0.9352 {"metadata":{}}
+2026-03-24 21:49:44 [INFO]: Signal sent for ENAUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:49:44 [INFO]: [PAPER TRADE] Opening LONG on ENAUSDT at 0.0931 {"metadata":{}}
+2026-03-24 21:49:45 [INFO]: Signal sent for LIGHTUSDT via EMA Ribbon Scalp {"metadata":{}}
+2026-03-24 21:49:45 [INFO]: [PAPER TRADE] Opening SHORT on LIGHTUSDT at 0.2230 {"metadata":{}}
+2026-03-24 21:49:45 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:50:31 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:50:41 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:51:31 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:51:42 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:52:31 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:52:41 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:53:31 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:53:33 [INFO]: Signal sent for TAOUSDT via OI Divergence {"metadata":{}}
+2026-03-24 21:53:33 [INFO]: [PAPER TRADE] Opening SHORT on TAOUSDT at 325.3000 {"metadata":{}}
+2026-03-24 21:53:41 [INFO]: Signal sent for LIGHTUSDT via VWAP Reversion {"metadata":{}}
+2026-03-24 21:53:41 [INFO]: [PAPER TRADE] Opening LONG on LIGHTUSDT at 0.2197 {"metadata":{}}
+2026-03-24 21:53:41 [INFO]: Signal sent for LIGHTUSDT via Momentum Breakout {"metadata":{}}
+2026-03-24 21:53:41 [INFO]: [PAPER TRADE] Opening SHORT on LIGHTUSDT at 0.2197 {"metadata":{}}
+2026-03-24 21:53:41 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:54:31 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:54:40 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:55:31 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:55:42 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:56:31 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:56:39 [INFO]: Signal sent for BRUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 21:56:39 [INFO]: [PAPER TRADE] Opening LONG on BRUSDT at 0.1405 {"metadata":{}}
+2026-03-24 21:56:43 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:57:31 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:57:37 [INFO]: Signal sent for ONTUSDT via Momentum Breakout {"metadata":{}}
+2026-03-24 21:57:37 [INFO]: [PAPER TRADE] Opening LONG on ONTUSDT at 0.0597 {"metadata":{}}
+2026-03-24 21:57:38 [INFO]: Signal sent for ONTUSDT via Funding Reversal {"metadata":{}}
+2026-03-24 21:57:38 [INFO]: [PAPER TRADE] Opening LONG on ONTUSDT at 0.0597 {"metadata":{}}
+2026-03-24 21:57:43 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:58:31 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:58:41 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 21:59:31 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 21:59:34 [INFO]: Signal sent for TAOUSDT via OI Divergence {"metadata":{}}
+2026-03-24 21:59:34 [INFO]: [PAPER TRADE] Opening LONG on TAOUSDT at 322.0900 {"metadata":{}}
+2026-03-24 21:59:36 [INFO]: Signal sent for ONTUSDT via Squeeze Breakout {"metadata":{}}
+2026-03-24 21:59:36 [INFO]: [PAPER TRADE] Opening LONG on ONTUSDT at 0.0593 {"metadata":{}}
+2026-03-24 21:59:43 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:00:31 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:00:42 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:01:31 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:01:33 [INFO]: Signal sent for XAGUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:01:33 [INFO]: [PAPER TRADE] Opening LONG on XAGUSDT at 69.5800 {"metadata":{}}
+2026-03-24 22:01:34 [INFO]: Signal sent for RIVERUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:01:34 [INFO]: [PAPER TRADE] Opening LONG on RIVERUSDT at 23.9420 {"metadata":{}}
+2026-03-24 22:01:36 [INFO]: Signal sent for HYPEUSDT via EMA Ribbon Scalp {"metadata":{}}
+2026-03-24 22:01:36 [INFO]: [PAPER TRADE] Opening LONG on HYPEUSDT at 39.7560 {"metadata":{}}
+2026-03-24 22:01:40 [INFO]: Signal sent for PIPPINUSDT via EMA Pullback {"metadata":{}}
+2026-03-24 22:01:40 [INFO]: [PAPER TRADE] Opening SHORT on PIPPINUSDT at 0.0794 {"metadata":{}}
+2026-03-24 22:01:42 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:02:31 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:02:40 [INFO]: Signal sent for PIPPINUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:02:40 [INFO]: [PAPER TRADE] Opening LONG on PIPPINUSDT at 0.0798 {"metadata":{}}
+2026-03-24 22:02:41 [INFO]: Signal sent for ENAUSDT via Liquidity Sweep {"metadata":{}}
+2026-03-24 22:02:41 [INFO]: [PAPER TRADE] Opening SHORT on ENAUSDT at 0.0933 {"metadata":{}}
+2026-03-24 22:02:41 [INFO]: Signal sent for ENAUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 22:02:41 [INFO]: [PAPER TRADE] Opening SHORT on ENAUSDT at 0.0933 {"metadata":{}}
+2026-03-24 22:02:42 [INFO]: Signal sent for LIGHTUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 22:02:42 [INFO]: [PAPER TRADE] Opening LONG on LIGHTUSDT at 0.2186 {"metadata":{}}
+2026-03-24 22:02:42 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:03:31 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:03:34 [INFO]: Signal sent for SIRENUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 22:03:34 [INFO]: [PAPER TRADE] Opening SHORT on SIRENUSDT at 1.0250 {"metadata":{}}
+2026-03-24 22:03:40 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:04:31 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:04:36 [INFO]: Signal sent for TAOUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:04:36 [INFO]: [PAPER TRADE] Opening LONG on TAOUSDT at 324.2600 {"metadata":{}}
+2026-03-24 22:04:44 [INFO]: Signal sent for LIGHTUSDT via Liquidity Sweep {"metadata":{}}
+2026-03-24 22:04:44 [INFO]: [PAPER TRADE] Opening LONG on LIGHTUSDT at 0.2187 {"metadata":{}}
+2026-03-24 22:04:44 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:05:31 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:05:34 [INFO]: Signal sent for SIRENUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:05:34 [INFO]: [PAPER TRADE] Opening LONG on SIRENUSDT at 1.0244 {"metadata":{}}
+2026-03-24 22:05:36 [INFO]: Signal sent for ONTUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:05:36 [INFO]: [PAPER TRADE] Opening LONG on ONTUSDT at 0.0585 {"metadata":{}}
+2026-03-24 22:05:41 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:08:01 [INFO]: Starting Binance Signals Bot MVP... {"metadata":{}}
+2026-03-24 22:08:01 [INFO]: Scan Worker started {"metadata":{}}
+2026-03-24 22:08:01 [INFO]: Refreshing universe (Top-N symbols by 24h volume)... {"metadata":{}}
+2026-03-24 22:08:02 [INFO]: Universe updated. Top 30 symbols loaded. {"metadata":{}}
+2026-03-24 22:08:02 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:08:05 [INFO]: Signal sent for SIRENUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 22:08:05 [INFO]: [PAPER TRADE] Opening SHORT on SIRENUSDT at 1.0269 {"metadata":{}}
+2026-03-24 22:08:07 [INFO]: Signal sent for ONTUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:08:07 [INFO]: [PAPER TRADE] Opening LONG on ONTUSDT at 0.0586 {"metadata":{}}
+2026-03-24 22:08:09 [INFO]: Signal sent for BRUSDT via EMA Ribbon Scalp {"metadata":{}}
+2026-03-24 22:08:09 [INFO]: [PAPER TRADE] Opening LONG on BRUSDT at 0.1421 {"metadata":{}}
+2026-03-24 22:08:13 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:09:01 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:09:06 [INFO]: Signal sent for TAOUSDT via EMA Ribbon Scalp {"metadata":{}}
+2026-03-24 22:09:06 [INFO]: [PAPER TRADE] Opening LONG on TAOUSDT at 325.3200 {"metadata":{}}
+2026-03-24 22:09:07 [INFO]: Signal sent for SIRENUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 22:09:07 [INFO]: [PAPER TRADE] Opening SHORT on SIRENUSDT at 1.0275 {"metadata":{}}
+2026-03-24 22:09:08 [INFO]: Signal sent for ONTUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:09:08 [INFO]: [PAPER TRADE] Opening LONG on ONTUSDT at 0.0583 {"metadata":{}}
+2026-03-24 22:09:10 [INFO]: Signal sent for BRUSDT via EMA Ribbon Scalp {"metadata":{}}
+2026-03-24 22:09:10 [INFO]: [PAPER TRADE] Opening LONG on BRUSDT at 0.1426 {"metadata":{}}
+2026-03-24 22:09:11 [INFO]: Signal sent for 1000PEPEUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 22:09:11 [INFO]: [PAPER TRADE] Opening SHORT on 1000PEPEUSDT at 0.0034 {"metadata":{}}
+2026-03-24 22:09:13 [INFO]: Signal sent for PIPPINUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 22:09:13 [INFO]: [PAPER TRADE] Opening LONG on PIPPINUSDT at 0.0790 {"metadata":{}}
+2026-03-24 22:09:14 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:10:01 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:10:06 [INFO]: Signal sent for SIRENUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 22:10:06 [INFO]: [PAPER TRADE] Opening SHORT on SIRENUSDT at 1.0264 {"metadata":{}}
+2026-03-24 22:10:08 [INFO]: Signal sent for ONTUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:10:08 [INFO]: [PAPER TRADE] Opening LONG on ONTUSDT at 0.0583 {"metadata":{}}
+2026-03-24 22:10:14 [INFO]: Signal sent for 1000PEPEUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 22:10:14 [INFO]: [PAPER TRADE] Opening SHORT on 1000PEPEUSDT at 0.0034 {"metadata":{}}
+2026-03-24 22:10:18 [INFO]: Signal sent for APTUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:10:18 [INFO]: [PAPER TRADE] Opening LONG on APTUSDT at 1.0445 {"metadata":{}}
+2026-03-24 22:10:22 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:11:01 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:11:06 [INFO]: Signal sent for TAOUSDT via EMA Ribbon Scalp {"metadata":{}}
+2026-03-24 22:11:06 [INFO]: [PAPER TRADE] Opening LONG on TAOUSDT at 325.9800 {"metadata":{}}
+2026-03-24 22:11:08 [INFO]: Signal sent for DOGEUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 22:11:08 [INFO]: [PAPER TRADE] Opening SHORT on DOGEUSDT at 0.0932 {"metadata":{}}
+2026-03-24 22:11:12 [INFO]: Signal sent for APTUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:11:12 [INFO]: [PAPER TRADE] Opening LONG on APTUSDT at 1.0446 {"metadata":{}}
+2026-03-24 22:11:13 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:11:54 [INFO]: Starting Binance Signals Bot MVP... {"metadata":{}}
+2026-03-24 22:11:54 [INFO]: Scan Worker started {"metadata":{}}
+2026-03-24 22:11:54 [INFO]: Refreshing universe (Top-N symbols by 24h volume)... {"metadata":{}}
+2026-03-24 22:11:55 [INFO]: Universe updated. Top 30 symbols loaded. {"metadata":{}}
+2026-03-24 22:11:55 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:11:58 [INFO]: Signal sent for TAOUSDT via EMA Ribbon Scalp {"metadata":{}}
+2026-03-24 22:11:58 [INFO]: [PAPER TRADE] Opening LONG on TAOUSDT at 324.7300 {"metadata":{}}
+2026-03-24 22:12:00 [INFO]: Signal sent for DOGEUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 22:12:00 [INFO]: [PAPER TRADE] Opening SHORT on DOGEUSDT at 0.0932 {"metadata":{}}
+2026-03-24 22:12:00 [INFO]: Signal sent for HYPEUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:12:00 [INFO]: [PAPER TRADE] Opening LONG on HYPEUSDT at 39.7630 {"metadata":{}}
+2026-03-24 22:12:04 [INFO]: Signal sent for APTUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:12:04 [INFO]: [PAPER TRADE] Opening LONG on APTUSDT at 1.0453 {"metadata":{}}
+2026-03-24 22:12:06 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:13:26 [INFO]: Starting Binance Signals Bot MVP... {"metadata":{}}
+2026-03-24 22:13:26 [INFO]: Trade Executor initialized. Status: PAPER TRADING {"metadata":{}}
+2026-03-24 22:13:26 [INFO]: Registered Telegram command for format: \/stats {"metadata":{}}
+2026-03-24 22:13:26 [INFO]: Scan Worker started {"metadata":{}}
+2026-03-24 22:13:26 [INFO]: Refreshing universe (Top-N symbols by 24h volume)... {"metadata":{}}
+2026-03-24 22:13:27 [INFO]: Universe updated. Top 30 symbols loaded. {"metadata":{}}
+2026-03-24 22:13:27 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:13:32 [INFO]: Signal sent for DOGEUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 22:13:32 [INFO]: [PAPER TRADE] Opening SHORT on DOGEUSDT at 0.0932 {"metadata":{}}
+2026-03-24 22:13:33 [INFO]: Signal sent for HYPEUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:13:33 [INFO]: [PAPER TRADE] Opening LONG on HYPEUSDT at 39.7530 {"metadata":{}}
+2026-03-24 22:13:37 [INFO]: Signal sent for APTUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:13:37 [INFO]: [PAPER TRADE] Opening LONG on APTUSDT at 1.0439 {"metadata":{}}
+2026-03-24 22:13:39 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:14:26 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:14:29 [INFO]: Signal sent for TAOUSDT via EMA Ribbon Scalp {"metadata":{}}
+2026-03-24 22:14:29 [INFO]: [PAPER TRADE] Opening LONG on TAOUSDT at 325.0000 {"metadata":{}}
+2026-03-24 22:14:31 [INFO]: Signal sent for ONTUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:14:31 [INFO]: [PAPER TRADE] Opening LONG on ONTUSDT at 0.0585 {"metadata":{}}
+2026-03-24 22:14:36 [INFO]: Signal sent for APTUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:14:36 [INFO]: [PAPER TRADE] Opening LONG on APTUSDT at 1.0443 {"metadata":{}}
+2026-03-24 22:14:38 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:15:26 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:15:33 [INFO]: Signal sent for PAXGUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:15:33 [INFO]: [PAPER TRADE] Opening LONG on PAXGUSDT at 4411.2200 {"metadata":{}}
+2026-03-24 22:15:35 [INFO]: Signal sent for CRCLUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:15:35 [INFO]: [PAPER TRADE] Opening LONG on CRCLUSDT at 103.0700 {"metadata":{}}
+2026-03-24 22:15:36 [INFO]: Signal sent for 1000PEPEUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:15:36 [INFO]: [PAPER TRADE] Opening LONG on 1000PEPEUSDT at 0.0034 {"metadata":{}}
+2026-03-24 22:15:37 [INFO]: Signal sent for ADAUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:15:37 [INFO]: [PAPER TRADE] Opening LONG on ADAUSDT at 0.2607 {"metadata":{}}
+2026-03-24 22:15:38 [INFO]: Signal sent for APTUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:15:38 [INFO]: [PAPER TRADE] Opening LONG on APTUSDT at 1.0444 {"metadata":{}}
+2026-03-24 22:15:38 [INFO]: Signal sent for LIGHTUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:15:38 [INFO]: [PAPER TRADE] Opening LONG on LIGHTUSDT at 0.2200 {"metadata":{}}
+2026-03-24 22:15:39 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:16:26 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:16:27 [INFO]: Signal sent for ETHUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:16:27 [INFO]: [PAPER TRADE] Opening LONG on ETHUSDT at 2124.0500 {"metadata":{}}
+2026-03-24 22:16:27 [INFO]: Signal sent for XAUUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:16:27 [INFO]: [PAPER TRADE] Opening LONG on XAUUSDT at 4403.3200 {"metadata":{}}
+2026-03-24 22:16:31 [INFO]: Signal sent for HYPEUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:16:31 [INFO]: [PAPER TRADE] Opening LONG on HYPEUSDT at 39.7480 {"metadata":{}}
+2026-03-24 22:16:32 [INFO]: Signal sent for PAXGUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:16:32 [INFO]: [PAPER TRADE] Opening LONG on PAXGUSDT at 4407.6000 {"metadata":{}}
+2026-03-24 22:16:33 [INFO]: Signal sent for ZECUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:16:33 [INFO]: [PAPER TRADE] Opening LONG on ZECUSDT at 226.5800 {"metadata":{}}
+2026-03-24 22:16:34 [INFO]: Signal sent for CRCLUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:16:34 [INFO]: [PAPER TRADE] Opening LONG on CRCLUSDT at 103.1800 {"metadata":{}}
+2026-03-24 22:16:38 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:17:26 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:17:28 [INFO]: Signal sent for ETHUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:17:28 [INFO]: [PAPER TRADE] Opening LONG on ETHUSDT at 2123.4000 {"metadata":{}}
+2026-03-24 22:17:29 [INFO]: Signal sent for XAUUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:17:29 [INFO]: [PAPER TRADE] Opening LONG on XAUUSDT at 4405.1700 {"metadata":{}}
+2026-03-24 22:17:34 [INFO]: Signal sent for PAXGUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:17:34 [INFO]: [PAPER TRADE] Opening LONG on PAXGUSDT at 4410.3600 {"metadata":{}}
+2026-03-24 22:17:36 [INFO]: Signal sent for CRCLUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:17:36 [INFO]: [PAPER TRADE] Opening LONG on CRCLUSDT at 102.5100 {"metadata":{}}
+2026-03-24 22:17:39 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:18:26 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:18:27 [INFO]: Signal sent for ETHUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:18:27 [INFO]: [PAPER TRADE] Opening LONG on ETHUSDT at 2123.9500 {"metadata":{}}
+2026-03-24 22:18:33 [INFO]: Signal sent for CRCLUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:18:33 [INFO]: [PAPER TRADE] Opening LONG on CRCLUSDT at 102.6000 {"metadata":{}}
+2026-03-24 22:18:33 [INFO]: Signal sent for 1000PEPEUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 22:18:33 [INFO]: [PAPER TRADE] Opening SHORT on 1000PEPEUSDT at 0.0034 {"metadata":{}}
+2026-03-24 22:18:36 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:19:26 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:19:34 [INFO]: Signal sent for CRCLUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:19:34 [INFO]: [PAPER TRADE] Opening LONG on CRCLUSDT at 102.5100 {"metadata":{}}
+2026-03-24 22:19:38 [INFO]: Signal sent for LIGHTUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:19:38 [INFO]: [PAPER TRADE] Opening LONG on LIGHTUSDT at 0.2201 {"metadata":{}}
+2026-03-24 22:19:39 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:20:26 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:20:27 [INFO]: Signal sent for ETHUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:20:27 [INFO]: [PAPER TRADE] Opening LONG on ETHUSDT at 2124.5100 {"metadata":{}}
+2026-03-24 22:20:28 [INFO]: Signal sent for SOLUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:20:28 [INFO]: [PAPER TRADE] Opening LONG on SOLUSDT at 89.0700 {"metadata":{}}
+2026-03-24 22:20:30 [INFO]: Signal sent for RIVERUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:20:30 [INFO]: [PAPER TRADE] Opening LONG on RIVERUSDT at 23.9790 {"metadata":{}}
+2026-03-24 22:20:33 [INFO]: Signal sent for BNBUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:20:33 [INFO]: [PAPER TRADE] Opening LONG on BNBUSDT at 631.6300 {"metadata":{}}
+2026-03-24 22:20:33 [INFO]: Signal sent for BRUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:20:33 [INFO]: [PAPER TRADE] Opening LONG on BRUSDT at 0.1430 {"metadata":{}}
+2026-03-24 22:20:37 [INFO]: Signal sent for SUIUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:20:37 [INFO]: [PAPER TRADE] Opening LONG on SUIUSDT at 0.9355 {"metadata":{}}
+2026-03-24 22:20:37 [INFO]: Signal sent for LIGHTUSDT via EMA Ribbon Scalp {"metadata":{}}
+2026-03-24 22:20:37 [INFO]: [PAPER TRADE] Opening SHORT on LIGHTUSDT at 0.2194 {"metadata":{}}
+2026-03-24 22:20:38 [INFO]: Signal sent for LINKUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:20:38 [INFO]: [PAPER TRADE] Opening LONG on LINKUSDT at 9.1000 {"metadata":{}}
+2026-03-24 22:20:38 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:21:26 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:21:29 [INFO]: Signal sent for BTCUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:21:29 [INFO]: [PAPER TRADE] Opening LONG on BTCUSDT at 69591.9000 {"metadata":{}}
+2026-03-24 22:21:30 [INFO]: Signal sent for ETHUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:21:30 [INFO]: [PAPER TRADE] Opening LONG on ETHUSDT at 2123.2500 {"metadata":{}}
+2026-03-24 22:21:31 [INFO]: Signal sent for SOLUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:21:31 [INFO]: [PAPER TRADE] Opening LONG on SOLUSDT at 89.0100 {"metadata":{}}
+2026-03-24 22:21:33 [INFO]: Signal sent for DOGEUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:21:33 [INFO]: [PAPER TRADE] Opening LONG on DOGEUSDT at 0.0932 {"metadata":{}}
+2026-03-24 22:21:36 [INFO]: Signal sent for BNBUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:21:36 [INFO]: [PAPER TRADE] Opening LONG on BNBUSDT at 631.6800 {"metadata":{}}
+2026-03-24 22:21:37 [INFO]: Signal sent for BRUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:21:37 [INFO]: [PAPER TRADE] Opening LONG on BRUSDT at 0.1430 {"metadata":{}}
+2026-03-24 22:21:37 [INFO]: Signal sent for CRCLUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:21:37 [INFO]: [PAPER TRADE] Opening LONG on CRCLUSDT at 102.7100 {"metadata":{}}
+2026-03-24 22:21:40 [INFO]: Signal sent for LINKUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:21:40 [INFO]: [PAPER TRADE] Opening LONG on LINKUSDT at 9.1010 {"metadata":{}}
+2026-03-24 22:21:41 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:22:26 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:22:27 [INFO]: Signal sent for ETHUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:22:27 [INFO]: [PAPER TRADE] Opening LONG on ETHUSDT at 2124.2800 {"metadata":{}}
+2026-03-24 22:22:29 [INFO]: Signal sent for SOLUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:22:29 [INFO]: [PAPER TRADE] Opening LONG on SOLUSDT at 89.0300 {"metadata":{}}
+2026-03-24 22:22:30 [INFO]: Signal sent for RIVERUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:22:30 [INFO]: [PAPER TRADE] Opening LONG on RIVERUSDT at 23.9900 {"metadata":{}}
+2026-03-24 22:22:32 [INFO]: Signal sent for DOGEUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:22:32 [INFO]: [PAPER TRADE] Opening LONG on DOGEUSDT at 0.0932 {"metadata":{}}
+2026-03-24 22:22:34 [INFO]: Signal sent for BRUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:22:34 [INFO]: [PAPER TRADE] Opening LONG on BRUSDT at 0.1426 {"metadata":{}}
+2026-03-24 22:22:35 [INFO]: Signal sent for CRCLUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:22:35 [INFO]: [PAPER TRADE] Opening LONG on CRCLUSDT at 102.7500 {"metadata":{}}
+2026-03-24 22:22:38 [INFO]: Signal sent for APTUSDT via Momentum Breakout {"metadata":{}}
+2026-03-24 22:22:38 [INFO]: [PAPER TRADE] Opening LONG on APTUSDT at 1.0549 {"metadata":{}}
+2026-03-24 22:22:39 [INFO]: Signal sent for SUIUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:22:39 [INFO]: [PAPER TRADE] Opening LONG on SUIUSDT at 0.9355 {"metadata":{}}
+2026-03-24 22:22:39 [INFO]: Signal sent for LIGHTUSDT via EMA Ribbon Scalp {"metadata":{}}
+2026-03-24 22:22:39 [INFO]: [PAPER TRADE] Opening SHORT on LIGHTUSDT at 0.2198 {"metadata":{}}
+2026-03-24 22:22:40 [INFO]: Signal sent for LINKUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:22:40 [INFO]: [PAPER TRADE] Opening LONG on LINKUSDT at 9.0990 {"metadata":{}}
+2026-03-24 22:22:40 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:23:26 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:23:29 [INFO]: Signal sent for BTCUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:23:29 [INFO]: [PAPER TRADE] Opening LONG on BTCUSDT at 69565.5000 {"metadata":{}}
+2026-03-24 22:23:30 [INFO]: Signal sent for ETHUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:23:30 [INFO]: [PAPER TRADE] Opening LONG on ETHUSDT at 2122.5900 {"metadata":{}}
+2026-03-24 22:23:31 [INFO]: Signal sent for SOLUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:23:31 [INFO]: [PAPER TRADE] Opening LONG on SOLUSDT at 88.9700 {"metadata":{}}
+2026-03-24 22:23:31 [INFO]: Signal sent for XAGUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:23:31 [INFO]: [PAPER TRADE] Opening LONG on XAGUSDT at 69.9000 {"metadata":{}}
+2026-03-24 22:23:34 [INFO]: Signal sent for DOGEUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:23:34 [INFO]: [PAPER TRADE] Opening LONG on DOGEUSDT at 0.0931 {"metadata":{}}
+2026-03-24 22:23:35 [INFO]: Signal sent for BNBUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:23:35 [INFO]: [PAPER TRADE] Opening LONG on BNBUSDT at 631.4400 {"metadata":{}}
+2026-03-24 22:23:35 [INFO]: Signal sent for BRUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:23:35 [INFO]: [PAPER TRADE] Opening LONG on BRUSDT at 0.1428 {"metadata":{}}
+2026-03-24 22:23:36 [INFO]: Signal sent for CRCLUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:23:36 [INFO]: [PAPER TRADE] Opening LONG on CRCLUSDT at 102.8500 {"metadata":{}}
+2026-03-24 22:23:37 [INFO]: Signal sent for 1000PEPEUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:23:37 [INFO]: [PAPER TRADE] Opening LONG on 1000PEPEUSDT at 0.0034 {"metadata":{}}
+2026-03-24 22:23:38 [INFO]: Signal sent for ADAUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:23:38 [INFO]: [PAPER TRADE] Opening LONG on ADAUSDT at 0.2607 {"metadata":{}}
+2026-03-24 22:23:39 [INFO]: Signal sent for APTUSDT via Momentum Breakout {"metadata":{}}
+2026-03-24 22:23:39 [INFO]: [PAPER TRADE] Opening LONG on APTUSDT at 1.0547 {"metadata":{}}
+2026-03-24 22:23:39 [INFO]: Signal sent for SUIUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:23:39 [INFO]: [PAPER TRADE] Opening LONG on SUIUSDT at 0.9350 {"metadata":{}}
+2026-03-24 22:23:40 [INFO]: Signal sent for LIGHTUSDT via EMA Ribbon Scalp {"metadata":{}}
+2026-03-24 22:23:40 [INFO]: [PAPER TRADE] Opening SHORT on LIGHTUSDT at 0.2177 {"metadata":{}}
+2026-03-24 22:23:40 [INFO]: Signal sent for LINKUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:23:40 [INFO]: [PAPER TRADE] Opening LONG on LINKUSDT at 9.0930 {"metadata":{}}
+2026-03-24 22:23:40 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:23:53 [INFO]: Starting Binance Signals Bot MVP... {"metadata":{}}
+2026-03-24 22:23:53 [INFO]: Trade Executor initialized. Status: PAPER TRADING {"metadata":{}}
+2026-03-24 22:23:53 [INFO]: Registered Telegram command for format: \/stats {"metadata":{}}
+2026-03-24 22:23:53 [INFO]: Scan Worker started {"metadata":{}}
+2026-03-24 22:23:53 [INFO]: Refreshing universe (Top-N symbols by 24h volume)... {"metadata":{}}
+2026-03-24 22:23:56 [INFO]: Universe updated. Top 30 symbols loaded. {"metadata":{}}
+2026-03-24 22:23:56 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:24:01 [INFO]: Signal sent for TAOUSDT via Liquidity Sweep {"metadata":{}}
+2026-03-24 22:24:01 [INFO]: [PAPER TRADE] Opening SHORT on TAOUSDT at 327.7800 {"metadata":{}}
+2026-03-24 22:24:05 [INFO]: Signal sent for BRUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:24:05 [INFO]: [PAPER TRADE] Opening LONG on BRUSDT at 0.1426 {"metadata":{}}
+2026-03-24 22:24:06 [INFO]: Signal sent for 1000PEPEUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:24:06 [INFO]: [PAPER TRADE] Opening LONG on 1000PEPEUSDT at 0.0034 {"metadata":{}}
+2026-03-24 22:24:07 [INFO]: Signal sent for APTUSDT via Momentum Breakout {"metadata":{}}
+2026-03-24 22:24:07 [INFO]: [PAPER TRADE] Opening LONG on APTUSDT at 1.0545 {"metadata":{}}
+2026-03-24 22:24:08 [INFO]: Signal sent for LIGHTUSDT via EMA Ribbon Scalp {"metadata":{}}
+2026-03-24 22:24:08 [INFO]: [PAPER TRADE] Opening SHORT on LIGHTUSDT at 0.2184 {"metadata":{}}
+2026-03-24 22:24:09 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:24:53 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:25:01 [INFO]: Signal sent for PIPPINUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 22:25:01 [INFO]: [PAPER TRADE] Opening LONG on PIPPINUSDT at 0.0788 {"metadata":{}}
+2026-03-24 22:25:03 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:25:49 [INFO]: Starting Binance Signals Bot MVP... {"metadata":{}}
+2026-03-24 22:25:49 [INFO]: Trade Executor initialized. Status: PAPER TRADING {"metadata":{}}
+2026-03-24 22:25:49 [INFO]: Registered Telegram command for format: \/stats {"metadata":{}}
+2026-03-24 22:25:49 [INFO]: Scan Worker started {"metadata":{}}
+2026-03-24 22:25:49 [INFO]: Refreshing universe (Top-N symbols by 24h volume)... {"metadata":{}}
+2026-03-24 22:25:50 [INFO]: Universe updated. Top 30 symbols loaded. {"metadata":{}}
+2026-03-24 22:25:50 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:25:57 [INFO]: Signal sent for BRUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:25:57 [INFO]: [PAPER TRADE] Opening LONG on BRUSDT at 0.1424 {"metadata":{}}
+2026-03-24 22:26:01 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:26:49 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:26:58 [INFO]: Signal sent for PIPPINUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 22:26:58 [INFO]: [PAPER TRADE] Opening LONG on PIPPINUSDT at 0.0788 {"metadata":{}}
+2026-03-24 22:26:59 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:27:49 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:28:01 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:28:49 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:29:00 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:29:49 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:29:59 [INFO]: Signal sent for DOTUSDT via Breakout Failure {"metadata":{}}
+2026-03-24 22:29:59 [INFO]: [PAPER TRADE] Opening SHORT on DOTUSDT at 1.3790 {"metadata":{}}
+2026-03-24 22:30:01 [INFO]: Scan complete. {"metadata":{}}
+2026-03-24 22:30:49 [INFO]: Scanning 30 symbols... {"metadata":{}}
+2026-03-24 22:30:52 [INFO]: Signal sent for TAOUSDT via Micro Pullback {"metadata":{}}
+2026-03-24 22:30:52 [INFO]: [PAPER TRADE] Opening LONG on TAOUSDT at 326.4200 {"metadata":{}}
+2026-03-24 22:31:01 [INFO]: Scan complete. {"metadata":{}}
