@@ -3,7 +3,8 @@ FROM node:20-slim AS builder
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install
+# В Portainer может прокидываться NODE_ENV=production, из-за чего tsc не устанавливается. Жестко требуем dev-зависимости.
+RUN npm install --include=dev
 
 COPY . .
 RUN npm run build
