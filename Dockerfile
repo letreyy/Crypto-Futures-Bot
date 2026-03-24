@@ -11,6 +11,12 @@ RUN npm run build
 
 FROM node:20-slim
 
+# Install system fonts so Sharp can render text on SVG charts (fixes the "square" characters issue)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    fontconfig \
+    fonts-liberation \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 COPY package*.json ./
