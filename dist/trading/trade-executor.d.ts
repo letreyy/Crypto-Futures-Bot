@@ -3,6 +3,7 @@ export declare class TradeExecutor {
     private isLive;
     private activeTrades;
     private todaysPnlPercent;
+    private strategyStats;
     /**
      * Initializes the auto-trading subsystem
      */

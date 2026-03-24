@@ -5,6 +5,7 @@ export class TradeExecutor {
     isLive = false;
     activeTrades = [];
     todaysPnlPercent = 0;
+    strategyStats = {};
     /**
      * Initializes the auto-trading subsystem
      */
@@ -16,10 +17,17 @@ export class TradeExecutor {
         telegramNotifier.onCommand(/\/stats/, () => {
             const status = this.isLive ? 'LIVE' : 'PAPER TRADING';
             const sign = this.todaysPnlPercent > 0 ? '+' : '';
+            const strategyBreakdown = Object.entries(this.strategyStats)
+                .sort((a, b) => b[1].pnl - a[1].pnl)
+                .map(([name, s]) => {
+                const sSign = s.pnl > 0 ? '+' : '';
+                return `• <b>${name}</b>: ${sSign}${s.pnl.toFixed(2)}% (W:${s.win} L:${s.loss})`;
+            }).join('\n');
+            const stratMsg = strategyBreakdown ? `\n\n🎯 <b>Strategy Performance:</b>\n${strategyBreakdown}` : '';
             const msg = `📊 <b>Bot Statistics</b>
 🤖 <b>Status:</b> ${status}
 📂 <b>Active Trades:</b> ${this.activeTrades.length}
-💰 <b>Total PnL Today:</b> ${sign}${this.todaysPnlPercent.toFixed(2)}%
+💰 <b>Total PnL Today:</b> ${sign}${this.todaysPnlPercent.toFixed(2)}%${stratMsg}
 
 <i>Active Symbols:</i>
 ${this.activeTrades.map(t => `- ${t.symbol} ${t.direction}`).join('\n') || '- None'}`;
@@ -61,7 +69,17 @@ ${this.activeTrades.map(t => `- ${t.symbol} ${t.direction}`).join('\n') || '- No
             if (closed) {
                 const leveragedPnl = finalPnlRaw * trade.leverage * 100;
                 this.todaysPnlPercent += leveragedPnl;
-                logger.info(`[PAPER TRADE CLOSED] ${trade.symbol} ${trade.direction} | PnL: ${leveragedPnl.toFixed(2)}%`);
+                // Record Strategy Stats
+                if (!this.strategyStats[trade.strategyName]) {
+                    this.strategyStats[trade.strategyName] = { win: 0, loss: 0, pnl: 0 };
+                }
+                const stats = this.strategyStats[trade.strategyName];
+                if (leveragedPnl > 0)
+                    stats.win++;
+                else
+                    stats.loss++;
+                stats.pnl += leveragedPnl;
+                logger.info(`[PAPER TRADE CLOSED] ${trade.symbol} ${trade.direction} | PnL: ${leveragedPnl.toFixed(2)}% | Str: ${trade.strategyName}`);
                 telegramNotifier.sendTradeResult(trade.symbol, trade.direction, leveragedPnl, this.todaysPnlPercent);
                 return false;
             }
@@ -91,7 +109,8 @@ ${this.activeTrades.map(t => `- ${t.symbol} ${t.direction}`).join('\n') || '- No
                 tp: signal.levels.tp[1], // Simulated targeting TP2
                 leverage: signal.leverageSuggestion,
                 pnlPercent: 0,
-                timestamp: signal.timestamp
+                timestamp: signal.timestamp,
+                strategyName: signal.strategyName
             });
             return;
         }
