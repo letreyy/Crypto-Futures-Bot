@@ -83,6 +83,12 @@ export class ScanWorker {
                 const symbolSignals: FinalSignal[] = [];
 
                 for (const strategy of strategyRegistry) {
+                    // Skip disabled strategies
+                    if (tradeExecutor.isStrategyDisabled(strategy.name)) continue;
+
+                    // Skip if this symbol+strategy combo just got stopped out
+                    if (tradeExecutor.isOnSlCooldown(symbol, strategy.name)) continue;
+
                     const candidate = strategy.execute(ctx);
                     if (candidate) {
                         const { score, label } = ScoringEngine.calculate(ctx, candidate);
@@ -90,7 +96,7 @@ export class ScanWorker {
                         if (score >= config.bot.minSignalScore) {
                             if (!dedupStore.isCooldown(symbol, strategy.id, candidate.direction)) {
                                 const levels = RiskEngine.calculateLevels(ctx, candidate.direction);
-                                const leverageSuggestion = Math.max(1, Math.min(20, Math.floor(10 / (levels.riskPercent || 1))));
+                                const leverageSuggestion = tradeExecutor.calculateLeverage(levels.riskPercent);
                                 
                                 symbolSignals.push({
                                     ...candidate,
@@ -115,7 +121,6 @@ export class ScanWorker {
 
                     await telegramNotifier.sendSignal(finalSignal, ctx);
                     await tradeExecutor.processSignal(finalSignal);
-                    // We use strategyName as ID to deduplicate the specific string since we don't map back `strategy.id` on FinalSignal
                     dedupStore.recordAlert(symbol, finalSignal.strategyName, finalSignal.direction);
                 }
 

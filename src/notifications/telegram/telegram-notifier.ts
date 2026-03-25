@@ -74,7 +74,10 @@ export class TelegramNotifier {
             await this.bot.sendMessage(config.telegram.chatId, message, { 
                 parse_mode: 'HTML',
                 reply_markup: {
-                    keyboard: [[{ text: '/stats' }]],
+                    keyboard: [
+                        [{ text: '/stats' }, { text: '/strategies' }],
+                        [{ text: '/leverage' }]
+                    ],
                     resize_keyboard: true,
                     is_persistent: true
                 }
@@ -84,7 +87,7 @@ export class TelegramNotifier {
         }
     }
 
-    onCommand(command: RegExp, handler: (msg: any) => void): void {
+    onCommand(command: RegExp, handler: (msg: any, match?: RegExpExecArray | null) => void): void {
         if (!this.bot) return;
         this.bot.onText(command, handler);
         logger.info(`Registered Telegram command for format: ${command.source}`);
