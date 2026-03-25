@@ -43,8 +43,8 @@ export class TradeExecutor {
     async init() {
         logger.info('Trade Executor initialized. Status: ' + (this.isLive ? 'LIVE' : 'PAPER TRADING'));
 
-        // ─── /stats ───
-        telegramNotifier.onCommand(/\/stats/, () => {
+        // ─── 📊 Статистика ───
+        telegramNotifier.onCommand(/(\/stats|📊 Статистика)/, () => {
             const status = this.isLive ? 'LIVE' : 'PAPER TRADING';
             const sign = this.todaysPnlPercent > 0 ? '+' : '';
             
@@ -73,8 +73,8 @@ ${this.activeTrades.map(t => `- ${t.symbol} ${t.direction} (${t.strategyName})`)
             telegramNotifier.sendTextMessage(msg);
         });
 
-        // ─── /strategies ───
-        telegramNotifier.onCommand(/\/strategies/, () => {
+        // ─── ⚙️ Стратегии ───
+        telegramNotifier.onCommand(/(\/strategies|⚙️ Стратегии)/, () => {
             const { strategyRegistry } = require('../strategies/strategy-registry.js');
             const lines = (strategyRegistry as any[]).map((s: any) => {
                 const disabled = this.disabledStrategies.has(s.name);
@@ -104,8 +104,8 @@ ${lines.join('\n')}
             }
         });
 
-        // ─── /leverage ───
-        telegramNotifier.onCommand(/\/leverage$/, () => {
+        // ─── 📐 Плечо ───
+        telegramNotifier.onCommand(/(\/leverage$|📐 Плечо)/, () => {
             const levInfo = this.leverageConfig.mode === 'fixed'
                 ? `x${this.leverageConfig.fixedValue} (fixed)`
                 : `x${this.leverageConfig.minValue}-${this.leverageConfig.maxValue} (dynamic)`;

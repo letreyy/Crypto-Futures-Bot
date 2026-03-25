@@ -8,6 +8,15 @@ import { ChartGenerator } from './chart-generator.js';
 // Mute the node-telegram-bot-api deprecation warning
 process.env.NTBA_FIX_350 = '1';
 
+const MAIN_KEYBOARD = {
+    keyboard: [
+        [{ text: '📊 Статистика' }, { text: '⚙️ Стратегии' }],
+        [{ text: '📐 Плечо' }]
+    ],
+    resize_keyboard: true,
+    is_persistent: true
+};
+
 export class TelegramNotifier {
     private bot: TelegramBot | null = null;
 
@@ -39,7 +48,8 @@ export class TelegramNotifier {
             
             await this.bot.sendPhoto(config.telegram.chatId, chartBuffer, { 
                 caption: message,
-                parse_mode: 'HTML'
+                parse_mode: 'HTML',
+                reply_markup: MAIN_KEYBOARD
             }, {
                 filename: 'chart.png',
                 contentType: 'image/png'
@@ -62,7 +72,7 @@ export class TelegramNotifier {
 📊 <b>Total Today:</b> ${totalSign}${totalPnlToday.toFixed(2)}%`;
 
         try {
-            await this.bot.sendMessage(config.telegram.chatId, message, { parse_mode: 'HTML' });
+            await this.bot.sendMessage(config.telegram.chatId, message, { parse_mode: 'HTML', reply_markup: MAIN_KEYBOARD });
         } catch (err: any) {
             logger.error('Failed to send Telegram message (Trade Result)', { error: err.message });
         }
@@ -73,14 +83,7 @@ export class TelegramNotifier {
         try {
             await this.bot.sendMessage(config.telegram.chatId, message, { 
                 parse_mode: 'HTML',
-                reply_markup: {
-                    keyboard: [
-                        [{ text: '/stats' }, { text: '/strategies' }],
-                        [{ text: '/leverage' }]
-                    ],
-                    resize_keyboard: true,
-                    is_persistent: true
-                }
+                reply_markup: MAIN_KEYBOARD
             });
         } catch (err: any) {
             logger.error('Failed to send Telegram message (Text)', { error: err.message });
