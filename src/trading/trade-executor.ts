@@ -3,6 +3,7 @@ import { logger } from '../core/utils/logger.js';
 import { SignalDirection } from '../core/constants/enums.js';
 import { telegramNotifier } from '../notifications/telegram/telegram-notifier.js';
 import { Strategy } from '../strategies/base/strategy.js';
+import { universeLoader } from '../market/universe/universe-loader.js';
 
 interface PaperTrade {
     id: string;
@@ -10,9 +11,11 @@ interface PaperTrade {
     direction: SignalDirection;
     entryPrice: number;
     sl: number;
-    tp: number;
+    tp: number[];            // All 4 TP levels
+    tpHit: number;           // How many TPs already hit (0-4)
+    remainingPortion: number; // 1.0 = full position, 0.75/0.50/0.25/0 after each TP
     leverage: number;
-    pnlPercent: number;
+    accumulatedPnl: number;  // Running total of realized PnL from partial closes
     timestamp: number;
     strategyName: string;
 }
@@ -141,6 +144,38 @@ Current: <b>${levInfo}</b>
             telegramNotifier.sendTextMessage(`📐 Leverage set to <b>dynamic x${min}-x${max}</b>`);
             logger.info(`Leverage set to dynamic x${min}-x${max} via Telegram`);
         });
+
+        // ─── 🚫 Монеты ───
+        telegramNotifier.onCommand(/(\/coins|🚫 Монеты)/, () => {
+            const disabled = universeLoader.getDisabledSymbols();
+            const list = disabled.length > 0
+                ? disabled.map(s => `🔴 ${s}`).join('\n')
+                : '<i>Нет заблокированных монет</i>';
+            const msg = `🚫 <b>Blocked Coins</b>
+
+${list}
+
+<i>Commands:</i>
+<code>/coin block BTCUSDT</code> — block a coin
+<code>/coin unblock BTCUSDT</code> — unblock a coin`;
+            telegramNotifier.sendTextMessage(msg);
+        });
+
+        // ─── /coin block SYMBOL ───
+        telegramNotifier.onCommand(/\/coin block (\w+)/, (_msg: any, match: any) => {
+            const sym = match[1].toUpperCase();
+            universeLoader.disableSymbol(sym);
+            telegramNotifier.sendTextMessage(`🔴 <b>${sym}</b> заблокирована и исключена из сканирования`);
+            logger.info(`Symbol ${sym} blocked via Telegram`);
+        });
+
+        // ─── /coin unblock SYMBOL ───
+        telegramNotifier.onCommand(/\/coin unblock (\w+)/, (_msg: any, match: any) => {
+            const sym = match[1].toUpperCase();
+            universeLoader.enableSymbol(sym);
+            telegramNotifier.sendTextMessage(`🟢 <b>${sym}</b> разблокирована`);
+            logger.info(`Symbol ${sym} unblocked via Telegram`);
+        });
     }
 
     /**
@@ -173,7 +208,9 @@ Current: <b>${levInfo}</b>
     }
 
     /**
-     * Checks open paper trades against the latest candle
+     * Checks open paper trades against the latest candle.
+     * Ladder TP: closes 25% of position at each TP level (TP1-TP4).
+     * SL closes whatever portion remains.
      */
     async updatePaperTrades(ctx: StrategyContext) {
         if (this.isLive) return;
@@ -183,57 +220,76 @@ Current: <b>${levInfo}</b>
         this.activeTrades = this.activeTrades.filter(trade => {
             if (trade.symbol !== ctx.symbol) return true;
 
-            let closed = false;
-            let finalPnlRaw = 0;
-            let hitSl = false;
+            const isLong = trade.direction === SignalDirection.LONG;
 
-            if (trade.direction === SignalDirection.LONG) {
-                if (lastCandle.low <= trade.sl) {
-                    closed = true;
-                    hitSl = true;
-                    finalPnlRaw = (trade.sl - trade.entryPrice) / trade.entryPrice;
-                } else if (lastCandle.high >= trade.tp) {
-                    closed = true;
-                    finalPnlRaw = (trade.tp - trade.entryPrice) / trade.entryPrice;
-                }
-            } else {
-                if (lastCandle.high >= trade.sl) {
-                    closed = true;
-                    hitSl = true;
-                    finalPnlRaw = (trade.entryPrice - trade.sl) / trade.entryPrice;
-                } else if (lastCandle.low <= trade.tp) {
-                    closed = true;
-                    finalPnlRaw = (trade.entryPrice - trade.tp) / trade.entryPrice;
-                }
+            // ─── Check Stop Loss first (closes entire remaining position) ───
+            const slHit = isLong
+                ? lastCandle.low <= trade.sl
+                : lastCandle.high >= trade.sl;
+
+            if (slHit) {
+                const slPnlRaw = isLong
+                    ? (trade.sl - trade.entryPrice) / trade.entryPrice
+                    : (trade.entryPrice - trade.sl) / trade.entryPrice;
+                const slPnl = slPnlRaw * trade.remainingPortion * trade.leverage * 100;
+                const totalPnl = trade.accumulatedPnl + slPnl;
+                this.todaysPnlPercent += slPnl;
+
+                this.recordStrategyResult(trade.strategyName, totalPnl);
+
+                const cooldownKey = `${trade.symbol}:${trade.strategyName}`;
+                this.slCooldown.set(cooldownKey, Date.now());
+                logger.info(`[SL COOLDOWN] ${cooldownKey} blocked for 1 hour`);
+                logger.info(`[PAPER CLOSED by SL] ${trade.symbol} ${trade.direction} | Partial PnL: ${slPnl.toFixed(2)}% | Total: ${totalPnl.toFixed(2)}%`);
+                telegramNotifier.sendTradeResult(trade.symbol, trade.direction, totalPnl, this.todaysPnlPercent);
+                return false; // Remove trade
             }
 
-            if (closed) {
-                const leveragedPnl = finalPnlRaw * trade.leverage * 100;
-                this.todaysPnlPercent += leveragedPnl;
-                
-                // Record Strategy Stats
-                if (!this.strategyStats[trade.strategyName]) {
-                    this.strategyStats[trade.strategyName] = { win: 0, loss: 0, pnl: 0 };
-                }
-                const stats = this.strategyStats[trade.strategyName];
-                if (leveragedPnl > 0) stats.win++;
-                else stats.loss++;
-                stats.pnl += leveragedPnl;
+            // ─── Check TP levels (ladder: 25% at each level) ───
+            while (trade.tpHit < 4) {
+                const nextTp = trade.tp[trade.tpHit];
+                const tpReached = isLong
+                    ? lastCandle.high >= nextTp
+                    : lastCandle.low <= nextTp;
 
-                // If stopped out, put this symbol+strategy combo on cooldown
-                if (hitSl) {
-                    const cooldownKey = `${trade.symbol}:${trade.strategyName}`;
-                    this.slCooldown.set(cooldownKey, Date.now());
-                    logger.info(`[SL COOLDOWN] ${cooldownKey} blocked for 1 hour`);
-                }
+                if (!tpReached) break;
 
-                logger.info(`[PAPER TRADE CLOSED] ${trade.symbol} ${trade.direction} | PnL: ${leveragedPnl.toFixed(2)}% | Str: ${trade.strategyName}`);
-                telegramNotifier.sendTradeResult(trade.symbol, trade.direction, leveragedPnl, this.todaysPnlPercent);
+                // Close 25% of the original position
+                const portion = 0.25;
+                const tpPnlRaw = isLong
+                    ? (nextTp - trade.entryPrice) / trade.entryPrice
+                    : (trade.entryPrice - nextTp) / trade.entryPrice;
+                const tpPnl = tpPnlRaw * portion * trade.leverage * 100;
+
+                trade.accumulatedPnl += tpPnl;
+                trade.remainingPortion -= portion;
+                trade.tpHit++;
+                this.todaysPnlPercent += tpPnl;
+
+                logger.info(`[TP${trade.tpHit} HIT] ${trade.symbol} ${trade.direction} | +${tpPnl.toFixed(2)}% (25%) | Remaining: ${(trade.remainingPortion * 100).toFixed(0)}%`);
+            }
+
+            // All 4 TPs hit — position fully closed
+            if (trade.tpHit >= 4) {
+                const totalPnl = trade.accumulatedPnl;
+                this.recordStrategyResult(trade.strategyName, totalPnl);
+                logger.info(`[PAPER CLOSED FULL TP] ${trade.symbol} ${trade.direction} | Total: ${totalPnl.toFixed(2)}%`);
+                telegramNotifier.sendTradeResult(trade.symbol, trade.direction, totalPnl, this.todaysPnlPercent);
                 return false;
             }
 
-            return true;
+            return true; // Trade still open with remaining portion
         });
+    }
+
+    private recordStrategyResult(strategyName: string, totalPnl: number) {
+        if (!this.strategyStats[strategyName]) {
+            this.strategyStats[strategyName] = { win: 0, loss: 0, pnl: 0 };
+        }
+        const stats = this.strategyStats[strategyName];
+        if (totalPnl > 0) stats.win++;
+        else stats.loss++;
+        stats.pnl += totalPnl;
     }
 
     /**
@@ -249,16 +305,18 @@ Current: <b>${levInfo}</b>
      */
     async processSignal(signal: FinalSignal) {
         if (!this.isLive) {
-            logger.info(`[PAPER TRADE] Opening ${signal.direction} on ${signal.symbol} at ${signal.levels.entry.toFixed(4)} | Leverage: x${signal.leverageSuggestion}`);
+            logger.info(`[PAPER TRADE] Opening ${signal.direction} on ${signal.symbol} at ${signal.levels.entry.toFixed(4)} | Leverage: x${signal.leverageSuggestion} | TPs: ${signal.levels.tp.map(t => t.toFixed(4)).join(', ')}`);
             this.activeTrades.push({
                 id: `${signal.symbol}-${signal.timestamp}`,
                 symbol: signal.symbol,
                 direction: signal.direction,
                 entryPrice: signal.levels.entry,
                 sl: signal.levels.sl,
-                tp: signal.levels.tp[1], // TP2 as default target for paper trading
+                tp: signal.levels.tp,        // All 4 TP levels
+                tpHit: 0,
+                remainingPortion: 1.0,
                 leverage: signal.leverageSuggestion,
-                pnlPercent: 0,
+                accumulatedPnl: 0,
                 timestamp: signal.timestamp,
                 strategyName: signal.strategyName
             });

@@ -15,9 +15,9 @@ export const config = {
   },
   bot: {
     logLevel: process.env.LOG_LEVEL || 'info',
-    scanIntervalSeconds: parseInt(process.env.SCAN_INTERVAL_SECONDS || '60'),
+    scanIntervalSeconds: parseInt(process.env.SCAN_INTERVAL_SECONDS || '30'),
     universeRefreshMinutes: parseInt(process.env.UNIVERSE_REFRESH_MINUTES || '60'),
-    topN: parseInt(process.env.TOP_N_SYMBOLS || '30'),
+    topN: parseInt(process.env.TOP_N_SYMBOLS || '50'),
     minSignalScore: parseInt(process.env.MIN_SIGNAL_SCORE || '80'),
     klinesLimit: 600
   },

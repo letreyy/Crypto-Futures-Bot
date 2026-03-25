@@ -11,7 +11,7 @@ process.env.NTBA_FIX_350 = '1';
 const MAIN_KEYBOARD = {
     keyboard: [
         [{ text: '📊 Статистика' }, { text: '⚙️ Стратегии' }],
-        [{ text: '📐 Плечо' }]
+        [{ text: '📐 Плечо' }, { text: '🚫 Монеты' }]
     ],
     resize_keyboard: true,
     is_persistent: true
