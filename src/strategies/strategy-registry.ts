@@ -4,6 +4,8 @@ import { FundingReversalStrategy } from './modules/funding-reversal.js';
 import { OIDivergenceStrategy } from './modules/oi-divergence.js';
 import { EmaRibbonScalpStrategy } from './modules/ema-ribbon-scalp.js';
 import { OrderFlowImbalanceStrategy } from './modules/order-flow-imbalance.js';
+import { BosChochStrategy } from './modules/bos-choch.js';
+import { FairValueGapStrategy } from './modules/fair-value-gap.js';
 import { Strategy } from './base/strategy.js';
 
 export const strategyRegistry: Strategy[] = [
@@ -20,5 +22,9 @@ export const strategyRegistry: Strategy[] = [
     new FundingReversalStrategy(),
     new OIDivergenceStrategy(),
     new EmaRibbonScalpStrategy(),
-    new OrderFlowImbalanceStrategy()
+    new OrderFlowImbalanceStrategy(),
+    // ─── SMC Strategies ───
+    new BosChochStrategy(),
+    new FairValueGapStrategy(),
 ];
+
