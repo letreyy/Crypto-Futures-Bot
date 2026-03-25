@@ -2,6 +2,7 @@ import { FinalSignal, StrategyContext } from '../core/types/bot-types.js';
 import { logger } from '../core/utils/logger.js';
 import { SignalDirection } from '../core/constants/enums.js';
 import { telegramNotifier } from '../notifications/telegram/telegram-notifier.js';
+import { Strategy } from '../strategies/base/strategy.js';
 
 interface PaperTrade {
     id: string;
@@ -36,11 +37,13 @@ export class TradeExecutor {
     private disabledStrategies: Set<string> = new Set();
     private slCooldown: SlCooldownMap = new Map();
     private leverageConfig: LeverageConfig = { mode: 'dynamic', fixedValue: 20, minValue: 1, maxValue: 20 };
+    private registeredStrategies: Strategy[] = [];
 
     /**
      * Initializes the auto-trading subsystem
      */
-    async init() {
+    async init(strategies: Strategy[]) {
+        this.registeredStrategies = strategies;
         logger.info('Trade Executor initialized. Status: ' + (this.isLive ? 'LIVE' : 'PAPER TRADING'));
 
         // ─── 📊 Статистика ───
@@ -75,8 +78,7 @@ ${this.activeTrades.map(t => `- ${t.symbol} ${t.direction} (${t.strategyName})`)
 
         // ─── ⚙️ Стратегии ───
         telegramNotifier.onCommand(/(\/strategies|⚙️ Стратегии)/, () => {
-            const { strategyRegistry } = require('../strategies/strategy-registry.js');
-            const lines = (strategyRegistry as any[]).map((s: any) => {
+            const lines = this.registeredStrategies.map(s => {
                 const disabled = this.disabledStrategies.has(s.name);
                 return `${disabled ? '🔴' : '🟢'} <b>${s.name}</b> [${s.id}]`;
             });
