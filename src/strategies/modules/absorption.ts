@@ -3,13 +3,17 @@ import { SignalDirection } from '../../core/constants/enums.js';
 import { Strategy } from '../base/strategy.js';
 
 /**
- * Absorption Strategy
- * Detects when large volume occurs with minimal price movement.
- * This indicates that one side is absorbing the other's aggression → reversal signal.
+ * Absorption Strategy — v2
  *
- * On futures: large sell volume absorbed by limit buy wall = bottom forming.
- *             large buy volume absorbed by limit sell wall = top forming.
+ * A high-volume doji/spinning-top candle AFTER a sustained directional move signals
+ * that one side is absorbing the other's aggression. The key is context:
+ * - You MUST see 3+ candles moving in one direction BEFORE the absorption candle
+ * - The absorption candle must have a large range (traded a lot, went nowhere)
+ * - Volume must be exceptional (2.5x+ average)
  */
+
+const TREND_LOOKBACK = 5; // candles to check for prior trend
+const MIN_TREND_CANDLES = 3; // minimum consecutive same-direction candles
 
 export class AbsorptionStrategy implements Strategy {
     name = 'Absorption';
@@ -17,11 +21,11 @@ export class AbsorptionStrategy implements Strategy {
 
     execute(ctx: StrategyContext): StrategySignalCandidate | null {
         const { candles, indicators } = ctx;
-        if (candles.length < 10) return null;
+        if (candles.length < TREND_LOOKBACK + 3) return null;
 
         const last = candles[candles.length - 1];
 
-        // Body size relative to full candle range
+        // ─── Absorption candle conditions ───
         const bodySize = Math.abs(last.close - last.open);
         const fullRange = last.high - last.low;
         if (fullRange <= 0) return null;
@@ -29,41 +33,48 @@ export class AbsorptionStrategy implements Strategy {
         const bodyRatio = bodySize / fullRange;
         const volumeRatio = last.volume / indicators.volumeSma;
 
-        // Absorption = high volume + tiny body (doji-like)
-        // Volume must be >= 2x average, body must be < 25% of full range
-        if (volumeRatio < 2.0 || bodyRatio > 0.25) return null;
+        // Strict: tiny body (< 20% of range), high volume (2.5x+), AND range >= 0.5× ATR (not a tiny candle)
+        if (volumeRatio < 2.5) return null;
+        if (bodyRatio > 0.20) return null;
+        if (fullRange < indicators.atr * 0.5) return null; // Must be a wide-ranging candle, not just a tiny doji
 
-        // Check surrounding candles for context (what was the prevailing direction?)
-        const prev3 = candles.slice(-4, -1);
-        const avgMove = prev3.reduce((sum, c) => sum + (c.close - c.open), 0) / prev3.length;
+        // ─── Prior trend check: count consecutive directional candles ───
+        const priorCandles = candles.slice(-(TREND_LOOKBACK + 1), -1);
+        let bearCount = 0;
+        let bullCount = 0;
 
-        // Bullish absorption: sellers were pushing down (avg move negative), but large volume absorbed → reversal UP
-        if (avgMove < 0 && indicators.rsi < 40) {
+        for (const c of priorCandles) {
+            if (c.close < c.open) bearCount++;
+            else if (c.close > c.open) bullCount++;
+        }
+
+        // ─── BULLISH ABSORPTION: 3+ bearish candles before → bears exhausted ───
+        if (bearCount >= MIN_TREND_CANDLES && indicators.rsi < 38) {
             return {
                 strategyName: this.name,
                 direction: SignalDirection.LONG,
-                confidence: 72,
+                confidence: 76,
                 reasons: [
-                    `Volume absorption: ${volumeRatio.toFixed(1)}x avg volume`,
-                    `Tiny body: ${(bodyRatio * 100).toFixed(0)}% of range`,
-                    'Selling pressure absorbed by limit buy wall',
-                    'RSI in oversold territory → reversal setup'
+                    `${bearCount}/${TREND_LOOKBACK} prior candles bearish (trend context)`,
+                    `Volume absorption: ${volumeRatio.toFixed(1)}x avg | Body: ${(bodyRatio * 100).toFixed(0)}% of range`,
+                    `Wide range: ${(fullRange / indicators.atr).toFixed(2)}× ATR — genuine absorption`,
+                    'RSI oversold → reversal setup'
                 ],
                 expireMinutes: 20
             };
         }
 
-        // Bearish absorption: buyers were pushing up, but large volume absorbed → reversal DOWN
-        if (avgMove > 0 && indicators.rsi > 60) {
+        // ─── BEARISH ABSORPTION: 3+ bullish candles before → bulls exhausted ───
+        if (bullCount >= MIN_TREND_CANDLES && indicators.rsi > 62) {
             return {
                 strategyName: this.name,
                 direction: SignalDirection.SHORT,
-                confidence: 72,
+                confidence: 76,
                 reasons: [
-                    `Volume absorption: ${volumeRatio.toFixed(1)}x avg volume`,
-                    `Tiny body: ${(bodyRatio * 100).toFixed(0)}% of range`,
-                    'Buying pressure absorbed by limit sell wall',
-                    'RSI in overbought territory → reversal setup'
+                    `${bullCount}/${TREND_LOOKBACK} prior candles bullish (trend context)`,
+                    `Volume absorption: ${volumeRatio.toFixed(1)}x avg | Body: ${(bodyRatio * 100).toFixed(0)}% of range`,
+                    `Wide range: ${(fullRange / indicators.atr).toFixed(2)}× ATR — genuine absorption`,
+                    'RSI overbought → reversal setup'
                 ],
                 expireMinutes: 20
             };
@@ -72,3 +83,4 @@ export class AbsorptionStrategy implements Strategy {
         return null;
     }
 }
+

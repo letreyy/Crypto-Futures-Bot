@@ -20,6 +20,12 @@ interface VolumeNode {
     type: 'HVN' | 'LVN';
 }
 
+function median(values: number[]): number {
+    const sorted = [...values].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
 function buildProfile(candles: { high: number; low: number; close: number; volume: number }[]): VolumeNode[] {
     const highs = candles.map(c => c.high);
     const lows = candles.map(c => c.low);
@@ -33,7 +39,6 @@ function buildProfile(candles: { high: number; low: number; close: number; volum
     const buckets: number[] = new Array(NUM_BUCKETS).fill(0);
 
     for (const c of candles) {
-        // Distribute candle's volume across the price range it spans
         const lo = Math.max(0, Math.floor((c.low - minPrice) / bucketSize));
         const hi = Math.min(NUM_BUCKETS - 1, Math.floor((c.high - minPrice) / bucketSize));
         const span = hi - lo + 1;
@@ -42,14 +47,17 @@ function buildProfile(candles: { high: number; low: number; close: number; volum
         }
     }
 
-    const avgVol = buckets.reduce((a, b) => a + b, 0) / NUM_BUCKETS;
+    // Use MEDIAN instead of average — adapts to skewed distributions
+    const medVol = median(buckets);
     const nodes: VolumeNode[] = [];
 
     for (let i = 0; i < NUM_BUCKETS; i++) {
         const priceLevel = minPrice + (i + 0.5) * bucketSize;
-        if (buckets[i] > avgVol * 1.5) {
+        if (buckets[i] > medVol * 1.8) {
+            // HVN: significantly above median
             nodes.push({ priceLevel, volume: buckets[i], type: 'HVN' });
-        } else if (buckets[i] < avgVol * 0.5) {
+        } else if (buckets[i] < medVol * 0.4) {
+            // LVN: significantly below median
             nodes.push({ priceLevel, volume: buckets[i], type: 'LVN' });
         }
     }
@@ -79,7 +87,7 @@ export class VolumeProfileStrategy implements Strategy {
         for (const node of nodes) {
             if (node.type !== 'HVN') continue;
             const distance = Math.abs(price - node.priceLevel);
-            if (distance > atr * 0.5) continue; // Must be close to the node
+            if (distance > atr * 0.3) continue; // Must be close — tightened from 0.5
 
             // Bounce LONG from HVN below
             if (price > node.priceLevel && prev.low <= node.priceLevel * 1.001 && last.close > last.open) {
@@ -121,6 +129,9 @@ export class VolumeProfileStrategy implements Strategy {
 
             // Bullish breakout through LVN
             if (prev.close < node.priceLevel && last.close > node.priceLevel && last.close > last.open) {
+                // Guard: no blocking HVN within 2× ATR above
+                const blockingHvn = nodes.some(n => n.type === 'HVN' && n.priceLevel > last.close && n.priceLevel < last.close + atr * 2);
+                if (blockingHvn) continue;
                 return {
                     strategyName: this.name,
                     direction: SignalDirection.LONG,
@@ -136,6 +147,9 @@ export class VolumeProfileStrategy implements Strategy {
 
             // Bearish breakdown through LVN
             if (prev.close > node.priceLevel && last.close < node.priceLevel && last.close < last.open) {
+                // Guard: no blocking HVN within 2× ATR below
+                const blockingHvn = nodes.some(n => n.type === 'HVN' && n.priceLevel < last.close && n.priceLevel > last.close - atr * 2);
+                if (blockingHvn) continue;
                 return {
                     strategyName: this.name,
                     direction: SignalDirection.SHORT,

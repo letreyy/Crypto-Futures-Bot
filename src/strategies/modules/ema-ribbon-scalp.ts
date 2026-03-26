@@ -17,39 +17,54 @@ export class EmaRibbonScalpStrategy implements Strategy {
         const ribbon = indicators.emaRibbon; // [8, 13, 21, 34, 55]
         if (!ribbon || ribbon.length < 5) return null;
 
-        // Bullish ribbon: lowest EMA is highest value
+        // ─── ATR body filter: skip tiny/noisy candles ───
+        // Body must be at least 30% of ATR — filters out indecision candles
+        const bodySize = Math.abs(last.close - last.open);
+        if (bodySize < indicators.atr * 0.3) return null;
+
+        // Bullish ribbon: EMAs stacked 8>13>21>34>55
         const isBullishRibbon = ribbon[0] > ribbon[1] && ribbon[1] > ribbon[2] && ribbon[2] > ribbon[3] && ribbon[3] > ribbon[4];
         
-        // Bearish ribbon: lowest EMA is lowest value
+        // Bearish ribbon: EMAs stacked 8<13<21<34<55
         const isBearishRibbon = ribbon[0] < ribbon[1] && ribbon[1] < ribbon[2] && ribbon[2] < ribbon[3] && ribbon[3] < ribbon[4];
 
-        // LONG SCALP: Ribbon is bullish, price drops into EMA 8-13 area, then prints a bullish candle closing above EMA 8
+        // LONG SCALP: Ribbon bullish, price dips to EMA8-13 zone, bullish close back above EMA8 + volume
         if (isBullishRibbon) {
             const inValueZone = prev.low <= ribbon[1] && prev.low >= ribbon[2];
             const strongClose = last.close > ribbon[0] && last.close > last.open;
-            
-            if (inValueZone && strongClose) {
+            const hasVolume = last.volume > indicators.volumeSma * 1.1;
+
+            if (inValueZone && strongClose && hasVolume) {
                 return {
                     strategyName: this.name,
                     direction: SignalDirection.LONG,
-                    confidence: 80,
-                    reasons: ['EMA Ribbon aligned bullishly', 'Pullback to 8-13 value area', 'Strong momentum resume'],
+                    confidence: 82,
+                    reasons: [
+                        'EMA Ribbon fully aligned bullish (8>13>21>34>55)',
+                        'Pullback to EMA8–13 value zone',
+                        `Momentum resume: body ${(bodySize / indicators.atr * 100).toFixed(0)}% of ATR`
+                    ],
                     expireMinutes: 15
                 };
             }
         }
 
-        // SHORT SCALP: Ribbon is bearish, price pops into EMA 8-13 area, then prints a bearish candle closing below EMA 8
+        // SHORT SCALP: Ribbon bearish, price pops to EMA8-13 zone, bearish close below EMA8 + volume
         if (isBearishRibbon) {
             const inValueZone = prev.high >= ribbon[1] && prev.high <= ribbon[2];
             const strongClose = last.close < ribbon[0] && last.close < last.open;
-            
-            if (inValueZone && strongClose) {
+            const hasVolume = last.volume > indicators.volumeSma * 1.1;
+
+            if (inValueZone && strongClose && hasVolume) {
                 return {
                     strategyName: this.name,
                     direction: SignalDirection.SHORT,
-                    confidence: 80,
-                    reasons: ['EMA Ribbon aligned bearishly', 'Pop to 8-13 value area', 'Strong momentum resume'],
+                    confidence: 82,
+                    reasons: [
+                        'EMA Ribbon fully aligned bearish (8<13<21<34<55)',
+                        'Pop to EMA8–13 value zone',
+                        `Momentum resume short: body ${(bodySize / indicators.atr * 100).toFixed(0)}% of ATR`
+                    ],
                     expireMinutes: 15
                 };
             }

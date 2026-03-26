@@ -30,15 +30,17 @@ import { Strategy } from '../base/strategy.js';
 interface FVGZone {
     top: number;
     bottom: number;
+    midpoint: number;
     direction: 'BULLISH' | 'BEARISH';
     strength: number; // gap size as % of price
     candleIdx: number;
     volumeStrength: number; // impulse volume vs average
+    partiallyFilled: boolean; // price has already crossed the midpoint = zone weakened
 }
 
 const FVG_LOOKBACK = 50; // search this many candles back for FVGs
 const FVG_MIN_SIZE_PCT = 0.08; // minimum gap size (0.08% of price)
-const FVG_VOLUME_MULTIPLIER = 1.4; // impulse candle must be 1.4x avg volume
+const FVG_VOLUME_MULTIPLIER = 1.6; // bumped from 1.4 — require stronger impulse
 
 function findFVGs(candles: Candle[], avgVolume: number): FVGZone[] {
     const zones: FVGZone[] = [];
@@ -61,14 +63,12 @@ function findFVGs(candles: Candle[], avgVolume: number): FVGZone[] {
         if (c2.low > c0.high) {
             const gapSize = c2.low - c0.high;
             if (gapSize >= minSize) {
-                zones.push({
-                    top: c2.low,
-                    bottom: c0.high,
-                    direction: 'BULLISH',
-                    strength: (gapSize / midPrice) * 100,
-                    candleIdx: i,
-                    volumeStrength: volStrength
-                });
+                const top = c2.low;
+                const bottom = c0.high;
+                const midpoint = (top + bottom) / 2;
+                // Check if any subsequent candle's LOW crossed below the midpoint (partial fill)
+                const partiallyFilled = candles.slice(i + 2).some(c => c.low < midpoint);
+                zones.push({ top, bottom, midpoint, direction: 'BULLISH', strength: (gapSize / midPrice) * 100, candleIdx: i, volumeStrength: volStrength, partiallyFilled });
             }
         }
 
@@ -76,14 +76,12 @@ function findFVGs(candles: Candle[], avgVolume: number): FVGZone[] {
         if (c0.low > c2.high) {
             const gapSize = c0.low - c2.high;
             if (gapSize >= minSize) {
-                zones.push({
-                    top: c0.low,
-                    bottom: c2.high,
-                    direction: 'BEARISH',
-                    strength: (gapSize / midPrice) * 100,
-                    candleIdx: i,
-                    volumeStrength: volStrength
-                });
+                const top = c0.low;
+                const bottom = c2.high;
+                const midpoint = (top + bottom) / 2;
+                // Check if any subsequent candle's HIGH crossed above the midpoint (partial fill)
+                const partiallyFilled = candles.slice(i + 2).some(c => c.high > midpoint);
+                zones.push({ top, bottom, midpoint, direction: 'BEARISH', strength: (gapSize / midPrice) * 100, candleIdx: i, volumeStrength: volStrength, partiallyFilled });
             }
         }
     }
@@ -111,6 +109,9 @@ export class FairValueGapStrategy implements Strategy {
         for (const zone of fvgZones) {
             const age = currentIdx - zone.candleIdx;
 
+            // Skip zones where price already passed the midpoint (losing/lost their magnetism)
+            if (zone.partiallyFilled) continue;
+
             // FVG must be recent and not yet too old (price hasn't moved far enough to invalidate)
             if (age < 2 || age > 30) continue;
 
@@ -122,7 +123,7 @@ export class FairValueGapStrategy implements Strategy {
             // Touch the bottom of a bullish FVG, price pulls back INTO the gap → expect bounce
             if (zone.direction === 'BULLISH' && (isTouchingZone || isJustBelowZone)) {
                 // Trend filter: price must be in bullish structure
-                if (indicators.ema20 < indicators.ema50) continue; // Don't buy into a downtrend
+                if (indicators.ema50 < indicators.ema200) continue; // Only trade FVG LONG in HTF uptrend
 
                 // Rejection signal: current candle must show bullish signs
                 const wickRejection = (last.low < zone.bottom) && (last.close > zone.bottom);
@@ -152,7 +153,7 @@ export class FairValueGapStrategy implements Strategy {
             // Price bounces back up INTO a bearish FVG → expect rejection
             if (zone.direction === 'BEARISH' && (isTouchingZone || isJustAboveZone)) {
                 // Trend filter: downtrend
-                if (indicators.ema20 > indicators.ema50) continue;
+                if (indicators.ema50 > indicators.ema200) continue; // Only trade FVG SHORT in HTF downtrend
 
                 const wickRejection = (last.high > zone.top) && (last.close < zone.top);
                 const bodyInZone = last.close >= zone.bottom && last.close <= zone.top;

@@ -8,24 +8,44 @@ export class MomentumBreakoutStrategy implements Strategy {
 
     execute(ctx: StrategyContext): StrategySignalCandidate | null {
         const { indicators, candles, liquidity } = ctx;
-        const last = candles[candles.length - 1];
+        if (candles.length < 20) return null;
 
-        if (last.close > (liquidity.localRangeHigh || 0) && last.volume > indicators.volumeSma * 1.5) {
+        const last = candles[candles.length - 1];
+        const prev = candles[candles.length - 2];
+
+        const rangeHigh = liquidity.localRangeHigh;
+        const rangeLow = liquidity.localRangeLow;
+        if (!rangeHigh || !rangeLow) return null;
+
+        // Volume must be 2×+ average and previous candle inside range (clean initial breakout)
+        if (last.volume < indicators.volumeSma * 2.0) return null;
+        const prevWasInside = prev.close < rangeHigh && prev.close > rangeLow;
+        if (!prevWasInside) return null;
+
+        if (last.close > rangeHigh && last.close > last.open) {
             return {
                 strategyName: this.name,
                 direction: SignalDirection.LONG,
-                confidence: 70,
-                reasons: ['Local range breakout', 'High volume momentum'],
-                expireMinutes: 40
+                confidence: 72,
+                reasons: [
+                    `Range breakout above ${rangeHigh.toFixed(4)}`,
+                    `Volume: ${(last.volume / indicators.volumeSma).toFixed(1)}x avg`,
+                    'Prior candle consolidated inside range'
+                ],
+                expireMinutes: 30
             };
         }
-        if (last.close < (liquidity.localRangeLow || 0) && last.volume > indicators.volumeSma * 1.5) {
+        if (last.close < rangeLow && last.close < last.open) {
             return {
                 strategyName: this.name,
                 direction: SignalDirection.SHORT,
-                confidence: 70,
-                reasons: ['Local range breakdown', 'High volume momentum'],
-                expireMinutes: 40
+                confidence: 72,
+                reasons: [
+                    `Range breakdown below ${rangeLow.toFixed(4)}`,
+                    `Volume: ${(last.volume / indicators.volumeSma).toFixed(1)}x avg`,
+                    'Prior candle consolidated inside range'
+                ],
+                expireMinutes: 30
             };
         }
         return null;

@@ -3,19 +3,34 @@ import { SignalDirection } from '../../core/constants/enums.js';
 import { Strategy } from '../base/strategy.js';
 
 /**
- * Delta Divergence Strategy
- * Approximated CVD (Cumulative Volume Delta) using candle body direction as proxy.
- * If price is rising but buying delta (volume on bullish candles) is declining → SHORT
- * If price is falling but selling delta (volume on bearish candles) is declining → LONG
+ * Delta Divergence Strategy — v2
+ *
+ * Approximates CVD using candle body direction weighted by volume.
+ * Detects divergence between PRICE TREND and BUYING/SELLING PRESSURE:
+ *
+ * - Price trend up over window + net delta negative → bears absorbing (hidden selling) → SHORT
+ * - Price trend down over window + net delta positive → bulls absorbing (hidden buying) → LONG
+ *
+ * Improvements over v1:
+ * - Looks at full 3 windows (past / mid / current) to detect turning point
+ * - Normalizes delta by ATR so score is comparable across assets
+ * - Requires delta sign to actually flip (not just be smaller)
+ * - Stricter RSI gating
  */
 
-const DELTA_LOOKBACK = 20;
+const WINDOW = 10; // candles per window
 
-function approximateDelta(candles: { open: number; close: number; volume: number }[]): number[] {
-    return candles.map(c => {
-        const bodyRatio = c.close !== c.open ? (c.close - c.open) / Math.abs(c.close - c.open) : 0;
-        return c.volume * bodyRatio; // positive = buying, negative = selling
-    });
+/** Signed volume delta: positive = net buying, negative = net selling */
+function netDelta(candles: { open: number; close: number; volume: number }[]): number {
+    return candles.reduce((sum, c) => {
+        const direction = c.close >= c.open ? 1 : -1;
+        return sum + c.volume * direction;
+    }, 0);
+}
+
+/** Simple price return over window */
+function priceReturn(candles: { close: number }[]): number {
+    return candles[candles.length - 1].close - candles[0].close;
 }
 
 export class DeltaDivergenceStrategy implements Strategy {
@@ -24,56 +39,68 @@ export class DeltaDivergenceStrategy implements Strategy {
 
     execute(ctx: StrategyContext): StrategySignalCandidate | null {
         const { candles, indicators } = ctx;
-        if (candles.length < DELTA_LOOKBACK + 5) return null;
+        if (candles.length < WINDOW * 3 + 2) return null;
 
-        const recent = candles.slice(-DELTA_LOOKBACK);
-        const deltas = approximateDelta(recent);
+        // Three back-to-back windows
+        const w1 = candles.slice(-(WINDOW * 3), -(WINDOW * 2)); // oldest
+        const w2 = candles.slice(-(WINDOW * 2), -WINDOW);       // middle
+        const w3 = candles.slice(-WINDOW);                       // most recent
 
-        // Split into two halves to detect divergence
-        const half = Math.floor(DELTA_LOOKBACK / 2);
-        const secondHalf = recent.slice(half);
-        const firstDeltas = deltas.slice(0, half);
-        const secondDeltas = deltas.slice(half);
+        const delta1 = netDelta(w1);
+        const delta2 = netDelta(w2);
+        const delta3 = netDelta(w3);
 
-        const priceChange2 = secondHalf[secondHalf.length - 1].close - secondHalf[0].close;
+        const price3 = priceReturn(w3);
 
-        const cumDelta1 = firstDeltas.reduce((a, b) => a + b, 0);
-        const cumDelta2 = secondDeltas.reduce((a, b) => a + b, 0);
+        // Normalize delta by ATR-equivalent (volumeSma * atr = price-volume unit)
+        const normFactor = indicators.volumeSma * indicators.atr;
+        if (normFactor <= 0) return null;
 
-        // Bearish divergence: price rising, delta falling
-        if (priceChange2 > 0 && cumDelta2 < cumDelta1 * 0.6 && cumDelta2 < 0) {
-            if (indicators.rsi > 55) { // Confirmation: RSI somewhat elevated
-                return {
-                    strategyName: this.name,
-                    direction: SignalDirection.SHORT,
-                    confidence: 75,
-                    reasons: [
-                        'Price rising but buying delta declining',
-                        `CumDelta shift: ${cumDelta1.toFixed(0)} → ${cumDelta2.toFixed(0)}`,
-                        'Hidden selling pressure detected'
-                    ],
-                    expireMinutes: 20
-                };
+        const normDelta3 = delta3 / normFactor;
+
+        // ─── BEARISH divergence: price rising but delta turning negative ───
+        // Price went up in window 3, but selling pressure overtook buying (delta flipped negative)
+        if (price3 > 0 && delta3 < 0 && delta3 < delta2 * 0.5) {
+            // Additional confirm: delta was positive in earlier windows (confirms it's a flip, not noise)
+            if (delta1 > 0 || delta2 > 0) {
+                if (indicators.rsi > 58) {
+                    return {
+                        strategyName: this.name,
+                        direction: SignalDirection.SHORT,
+                        confidence: 76,
+                        reasons: [
+                            'Price rising but net delta turned negative',
+                            `Delta: ${delta1.toFixed(0)} → ${delta2.toFixed(0)} → ${delta3.toFixed(0)} (flip)`,
+                            `Normalized pressure: ${normDelta3.toFixed(2)} units`,
+                            'Hidden selling absorption detected'
+                        ],
+                        expireMinutes: 20
+                    };
+                }
             }
         }
 
-        // Bullish divergence: price falling, delta rising
-        if (priceChange2 < 0 && cumDelta2 > cumDelta1 * 0.6 && cumDelta2 > 0) {
-            if (indicators.rsi < 45) {
-                return {
-                    strategyName: this.name,
-                    direction: SignalDirection.LONG,
-                    confidence: 75,
-                    reasons: [
-                        'Price falling but selling delta declining',
-                        `CumDelta shift: ${cumDelta1.toFixed(0)} → ${cumDelta2.toFixed(0)}`,
-                        'Hidden buying pressure detected'
-                    ],
-                    expireMinutes: 20
-                };
+        // ─── BULLISH divergence: price falling but delta turning positive ───
+        if (price3 < 0 && delta3 > 0 && delta3 > delta2 * 0.5) {
+            if (delta1 < 0 || delta2 < 0) {
+                if (indicators.rsi < 42) {
+                    return {
+                        strategyName: this.name,
+                        direction: SignalDirection.LONG,
+                        confidence: 76,
+                        reasons: [
+                            'Price falling but net delta turned positive',
+                            `Delta: ${delta1.toFixed(0)} → ${delta2.toFixed(0)} → ${delta3.toFixed(0)} (flip)`,
+                            `Normalized pressure: ${normDelta3.toFixed(2)} units`,
+                            'Hidden buying absorption detected'
+                        ],
+                        expireMinutes: 20
+                    };
+                }
             }
         }
 
         return null;
     }
 }
+

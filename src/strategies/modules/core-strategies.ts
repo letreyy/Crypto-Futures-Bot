@@ -46,33 +46,42 @@ export class SqueezeBreakoutStrategy implements Strategy {
     execute(ctx: StrategyContext): StrategySignalCandidate | null {
         const { indicators, candles } = ctx;
         const last = candles[candles.length - 1];
-        const bbWidth = (indicators.bbUpper - indicators.bbLower) / indicators.bbMid;
 
         const kcUpper = indicators.ema20 + 1.5 * indicators.atr;
         const kcLower = indicators.ema20 - 1.5 * indicators.atr;
-        
-        // TTM Squeeze logic: BB should be inside KC for squeeze, and break out of BB for signal
-        const isSqueezed = indicators.bbUpper < kcUpper && indicators.bbLower > kcLower;
 
-        if (isSqueezed || bbWidth < 0.005) { // Tight squeeze or TTM Squeeze
-            if (last.close > indicators.bbUpper && last.volume > indicators.volumeSma * 2.0) {
-                return {
-                    strategyName: this.name,
-                    direction: SignalDirection.LONG,
-                    confidence: 85,
-                    reasons: ['Volatility Squeeze (TTM)', 'Upper BB breakout', 'Volume expansion (2x avg)'],
-                    expireMinutes: 40
-                };
-            }
-            if (last.close < indicators.bbLower && last.volume > indicators.volumeSma * 2.0) {
-                return {
-                    strategyName: this.name,
-                    direction: SignalDirection.SHORT,
-                    confidence: 85,
-                    reasons: ['Volatility Squeeze (TTM)', 'Lower BB breakout', 'Volume expansion (2x avg)'],
-                    expireMinutes: 40
-                };
-            }
+        // TTM Squeeze: BB must be INSIDE Keltner Channel (true squeeze only, no bbWidth fallback)
+        const isSqueezed = indicators.bbUpper < kcUpper && indicators.bbLower > kcLower;
+        if (!isSqueezed) return null;
+
+        // Momentum confirmation: ADX must show developing trend (squeeze releasing into move)
+        if (indicators.adx < 20) return null;
+
+        if (last.close > indicators.bbUpper && last.volume > indicators.volumeSma * 2.0) {
+            return {
+                strategyName: this.name,
+                direction: SignalDirection.LONG,
+                confidence: 87,
+                reasons: [
+                    'TTM Squeeze: BB inside Keltner Channel',
+                    'Upper BB breakout with ADX momentum',
+                    `Volume expansion: ${(last.volume / indicators.volumeSma).toFixed(1)}x avg`
+                ],
+                expireMinutes: 40
+            };
+        }
+        if (last.close < indicators.bbLower && last.volume > indicators.volumeSma * 2.0) {
+            return {
+                strategyName: this.name,
+                direction: SignalDirection.SHORT,
+                confidence: 87,
+                reasons: [
+                    'TTM Squeeze: BB inside Keltner Channel',
+                    'Lower BB breakdown with ADX momentum',
+                    `Volume expansion: ${(last.volume / indicators.volumeSma).toFixed(1)}x avg`
+                ],
+                expireMinutes: 40
+            };
         }
         return null;
     }
@@ -85,26 +94,58 @@ export class VWAPReversionStrategy implements Strategy {
     execute(ctx: StrategyContext): StrategySignalCandidate | null {
         const { indicators, candles } = ctx;
         const last = candles[candles.length - 1];
-        const deviation = (last.close - indicators.vwap) / indicators.vwap;
+        const prev = candles[candles.length - 2];
 
-        if (deviation < -0.02 && indicators.rsi < 30 && last.volume > indicators.volumeSma * 1.5) {
-            return {
-                strategyName: this.name,
-                direction: SignalDirection.LONG,
-                confidence: 75,
-                reasons: ['Extreme VWAP deviation', 'RSI Oversold', 'High absorption volume', 'Potential mean reversion'],
-                expireMinutes: 20
-            };
+        // Adaptive threshold: deviation must exceed 1.5× ATR from VWAP
+        // This scales with actual market volatility instead of fixed 2%
+        const deviationAbs = Math.abs(last.close - indicators.vwap);
+        const adaptiveThreshold = indicators.atr * 1.5;
+        if (deviationAbs < adaptiveThreshold) return null;
+
+        const deviation = (last.close - indicators.vwap) / indicators.vwap;
+        const deviationPct = (deviation * 100).toFixed(2);
+
+        // LONG: price overextended below VWAP + bullish candle confirmation
+        if (last.close < indicators.vwap && indicators.rsi < 35) {
+            // Candle confirmation: current or previous must have started bouncing
+            const bullishConfirm = last.close > last.open || (prev.close < indicators.vwap && last.close > prev.close);
+            if (!bullishConfirm) return null;
+
+            if (last.volume > indicators.volumeSma * 1.3) {
+                return {
+                    strategyName: this.name,
+                    direction: SignalDirection.LONG,
+                    confidence: 77,
+                    reasons: [
+                        `VWAP deviation: ${deviationPct}% (>${(adaptiveThreshold / indicators.vwap * 100).toFixed(2)}% threshold)`,
+                        'RSI oversold confirmation',
+                        'Volume + bullish candle confirm reversal'
+                    ],
+                    expireMinutes: 20
+                };
+            }
         }
-        if (deviation > 0.02 && indicators.rsi > 70 && last.volume > indicators.volumeSma * 1.5) {
-            return {
-                strategyName: this.name,
-                direction: SignalDirection.SHORT,
-                confidence: 75,
-                reasons: ['Extreme VWAP deviation', 'RSI Overbought', 'High absorption volume', 'Potential mean reversion'],
-                expireMinutes: 20
-            };
+
+        // SHORT: price overextended above VWAP + bearish candle confirmation
+        if (last.close > indicators.vwap && indicators.rsi > 65) {
+            const bearishConfirm = last.close < last.open || (prev.close > indicators.vwap && last.close < prev.close);
+            if (!bearishConfirm) return null;
+
+            if (last.volume > indicators.volumeSma * 1.3) {
+                return {
+                    strategyName: this.name,
+                    direction: SignalDirection.SHORT,
+                    confidence: 77,
+                    reasons: [
+                        `VWAP deviation: +${deviationPct}% (>${(adaptiveThreshold / indicators.vwap * 100).toFixed(2)}% threshold)`,
+                        'RSI overbought confirmation',
+                        'Volume + bearish candle confirm rejection'
+                    ],
+                    expireMinutes: 20
+                };
+            }
         }
+
         return null;
     }
 }
