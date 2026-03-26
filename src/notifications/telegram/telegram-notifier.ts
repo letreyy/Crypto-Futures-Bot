@@ -121,10 +121,10 @@ export class TelegramNotifier {
 
 📍 <b>Entry:</b> <code>${s.levels.entry.toFixed(4)}</code>
 🛑 <b>Stop Loss:</b> <code>${s.levels.sl.toFixed(4)}</code> (-${s.levels.riskPercent.toFixed(2)}%)
-✅ <b>TP1:</b> <code>${s.levels.tp[0].toFixed(4)}</code> (+${(s.levels.riskPercent * 1.0).toFixed(2)}%)
-✅ <b>TP2:</b> <code>${s.levels.tp[1].toFixed(4)}</code> (+${(s.levels.riskPercent * 1.5).toFixed(2)}%)
-✅ <b>TP3:</b> <code>${s.levels.tp[2].toFixed(4)}</code> (+${(s.levels.riskPercent * 2.0).toFixed(2)}%)
-✅ <b>TP4:</b> <code>${s.levels.tp[3].toFixed(4)}</code> (+${(s.levels.riskPercent * 3.0).toFixed(2)}%)
+✅ <b>TP1:</b> <code>${s.levels.tp[0].toFixed(4)}</code> (+${(s.levels.riskPercent * 1.5).toFixed(2)}%)
+✅ <b>TP2:</b> <code>${s.levels.tp[1].toFixed(4)}</code> (+${(s.levels.riskPercent * 2.0).toFixed(2)}%)
+✅ <b>TP3:</b> <code>${s.levels.tp[2].toFixed(4)}</code> (+${(s.levels.riskPercent * 2.5).toFixed(2)}%)
+✅ <b>TP4:</b> <code>${s.levels.tp[3].toFixed(4)}</code> (+${(s.levels.riskPercent * 3.5).toFixed(2)}%)
 
 📐 <b>Leverage:</b> x${s.leverageSuggestion}
 💰 <b>Risk/Reward:</b> 1:${s.levels.rrRatio}

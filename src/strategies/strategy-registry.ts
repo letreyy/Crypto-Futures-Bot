@@ -6,25 +6,39 @@ import { EmaRibbonScalpStrategy } from './modules/ema-ribbon-scalp.js';
 import { OrderFlowImbalanceStrategy } from './modules/order-flow-imbalance.js';
 import { BosChochStrategy } from './modules/bos-choch.js';
 import { FairValueGapStrategy } from './modules/fair-value-gap.js';
+import { DeltaDivergenceStrategy } from './modules/delta-divergence.js';
+import { AbsorptionStrategy } from './modules/absorption.js';
+import { VwapBandsStrategy } from './modules/vwap-bands.js';
+import { VolumeProfileStrategy } from './modules/volume-profile.js';
 import { Strategy } from './base/strategy.js';
 
 export const strategyRegistry: Strategy[] = [
+    // ─── Core ───
     new EMAPullbackStrategy(),
     new SqueezeBreakoutStrategy(),
     new VWAPReversionStrategy(),
     new LiquiditySweepStrategy(),
+    // ─── Extra (active) ───
     new MomentumBreakoutStrategy(),
+    new RangeBounceStrategy(),
+    new BreakoutFailureStrategy(),
+    // ─── Disabled (execute returns null, kept for backward compat) ───
     new PumpDetectorStrategy(),
     new MicroPullbackStrategy(),
     new DumpBounceStrategy(),
-    new RangeBounceStrategy(),
-    new BreakoutFailureStrategy(),
+    // ─── Specialized ───
     new FundingReversalStrategy(),
     new OIDivergenceStrategy(),
     new EmaRibbonScalpStrategy(),
     new OrderFlowImbalanceStrategy(),
-    // ─── SMC Strategies ───
+    // ─── SMC ───
     new BosChochStrategy(),
     new FairValueGapStrategy(),
+    // ─── New ───
+    new DeltaDivergenceStrategy(),
+    new AbsorptionStrategy(),
+    new VwapBandsStrategy(),
+    new VolumeProfileStrategy(),
 ];
+
 

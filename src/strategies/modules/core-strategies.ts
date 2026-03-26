@@ -55,21 +55,21 @@ export class SqueezeBreakoutStrategy implements Strategy {
         const isSqueezed = indicators.bbUpper < kcUpper && indicators.bbLower > kcLower;
 
         if (isSqueezed || bbWidth < 0.005) { // Tight squeeze or TTM Squeeze
-            if (last.close > indicators.bbUpper && last.volume > indicators.volumeSma * 1.5) {
+            if (last.close > indicators.bbUpper && last.volume > indicators.volumeSma * 2.0) {
                 return {
                     strategyName: this.name,
                     direction: SignalDirection.LONG,
                     confidence: 85,
-                    reasons: ['Volatility Squeeze (TTM)', 'Upper BB breakout', 'Volume surge'],
+                    reasons: ['Volatility Squeeze (TTM)', 'Upper BB breakout', 'Volume expansion (2x avg)'],
                     expireMinutes: 40
                 };
             }
-            if (last.close < indicators.bbLower && last.volume > indicators.volumeSma * 1.5) {
+            if (last.close < indicators.bbLower && last.volume > indicators.volumeSma * 2.0) {
                 return {
                     strategyName: this.name,
                     direction: SignalDirection.SHORT,
                     confidence: 85,
-                    reasons: ['Volatility Squeeze (TTM)', 'Lower BB breakout', 'Volume surge'],
+                    reasons: ['Volatility Squeeze (TTM)', 'Lower BB breakout', 'Volume expansion (2x avg)'],
                     expireMinutes: 40
                 };
             }

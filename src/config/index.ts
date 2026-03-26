@@ -35,8 +35,8 @@ export const config = {
   },
   cooldown: {
     minutes: parseInt(process.env.COOLDOWN_MINUTES || '15'),
-    maxPerDayPerSymbol: parseInt(process.env.MAX_ALERTS_PER_SYMBOL_PER_DAY || '12'),
-    maxPerDayGlobal: parseInt(process.env.MAX_ALERTS_GLOBAL_PER_DAY || '120')
+    maxPerDayPerSymbol: parseInt(process.env.MAX_ALERTS_PER_SYMBOL_PER_DAY || '6'),
+    maxPerDayGlobal: parseInt(process.env.MAX_ALERTS_GLOBAL_PER_DAY || '300')
   },
   weights: {
     trendAlignment: 15,

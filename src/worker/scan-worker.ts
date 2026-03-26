@@ -11,7 +11,9 @@ import { telegramNotifier } from '../notifications/telegram/telegram-notifier.js
 import { tradeExecutor } from '../trading/trade-executor.js';
 import { dedupStore } from '../state/dedup-store.js';
 import { config } from '../config/index.js';
-import { FinalSignal, StrategyContext } from '../core/types/bot-types.js';
+import { FinalSignal, StrategyContext, StrategySignalCandidate } from '../core/types/bot-types.js';
+import { passesGlobalFilters, passesDirectionFilter } from '../strategies/global-filters.js';
+import { CombinationEngine } from '../strategies/combination-engine.js';
 
 export class ScanWorker {
     private isRunning: boolean = false;
@@ -38,49 +40,49 @@ export class ScanWorker {
     }
 
     private async scan() {
-        const symbols = await universeLoader.getTopSymbols();
-        logger.info(`Scanning ${symbols.length} symbols...`);
+        const topSymbols = await universeLoader.getTopSymbols();
 
-        for (const symbol of symbols) {
+        for (const symbol of topSymbols) {
+            if (!this.isRunning) break;
+            if (tradeExecutor.hasActiveTrade(symbol)) continue;
+
             try {
-                // Fetch 5m and 15m candles alongside funding and OI
-                const [c5m, c15m, funding, currentOI, oiHistory] = await Promise.all([
-                    binanceClient.getKlines(symbol, '5m', 200),
-                    binanceClient.getKlines(symbol, '15m', 200),
-                    binanceClient.getFundingRate(symbol),
-                    binanceClient.getOpenInterest(symbol),
-                    binanceClient.getOpenInterestHist(symbol, '5m', 30)
-                ]);
-
-                if (!c5m.length || !c15m.length) continue;
+                // Fetch candles
+                const candles = await binanceClient.getKlines(symbol, '5m', config.bot.klinesLimit);
+                if (!candles || candles.length < 200) continue;
 
                 // Indicator snapshots
-                const ind5m = TechnicalIndicators.calculateSnapshot(c5m);
-                const prevInd5m = TechnicalIndicators.calculateSnapshot(c5m.slice(0, -1));
-                const regime = MarketRegimeEngine.classify(c5m, ind5m);
-                const liquidity = LiquidityEngine.getContext(c5m);
+                const indicators = TechnicalIndicators.calculateSnapshot(candles);
+                const prevCandles = candles.slice(0, -1);
+                const prevIndicators = TechnicalIndicators.calculateSnapshot(prevCandles);
+                const regime = MarketRegimeEngine.classify(candles, indicators);
+                const liquidity = LiquidityEngine.getContext(candles);
+
+                let funding;
+                let openInterest;
+                try {
+                    const [fr, currentOI, oiHistory] = await Promise.all([
+                        binanceClient.getFundingRate(symbol),
+                        binanceClient.getOpenInterest(symbol),
+                        binanceClient.getOpenInterestHist(symbol, '5m', 30)
+                    ]);
+                    funding = fr || undefined;
+                    if (currentOI !== null && oiHistory.length > 0) {
+                        openInterest = { oi: currentOI, oiHistory };
+                    }
+                } catch {}
 
                 const ctx: StrategyContext = {
-                    symbol,
-                    timeframe: '5m',
-                    candles: c5m,
-                    candles15m: c15m,
-                    indicators: ind5m,
-                    prevIndicators: prevInd5m,
-                    regime,
-                    liquidity,
-                    funding: funding || undefined,
-                    openInterest: currentOI !== null && oiHistory.length > 0 ? { oi: currentOI, oiHistory } : undefined
+                    symbol, timeframe: '5m', candles, indicators, prevIndicators, regime, liquidity, funding, openInterest
                 };
 
                 await tradeExecutor.updatePaperTrades(ctx);
 
-                if (tradeExecutor.hasActiveTrade(symbol)) {
-                    continue; // Skip symbol completely until the existing trade is closed
-                }
+                // ─── GLOBAL FILTERS ───
+                if (!passesGlobalFilters(ctx)) continue;
 
-                // Strategy execution - Collect all candidates for this symbol
-                const symbolSignals: FinalSignal[] = [];
+                // ─── Strategy execution ───
+                const individualSignals: StrategySignalCandidate[] = [];
 
                 for (const strategy of strategyRegistry) {
                     // Skip disabled strategies
@@ -91,25 +93,38 @@ export class ScanWorker {
 
                     const candidate = strategy.execute(ctx);
                     if (candidate) {
-                        const { score, label } = ScoringEngine.calculate(ctx, candidate);
-                        
-                        if (score >= config.bot.minSignalScore) {
-                            if (!dedupStore.isCooldown(symbol, strategy.id, candidate.direction)) {
-                                const levels = RiskEngine.calculateLevels(ctx, candidate.direction);
-                                const leverageSuggestion = tradeExecutor.calculateLeverage(levels.riskPercent);
-                                
-                                symbolSignals.push({
-                                    ...candidate,
-                                    symbol,
-                                    timeframe: '5m',
-                                    levels,
-                                    regime,
-                                    score,
-                                    confidenceLabel: label,
-                                    timestamp: Date.now(),
-                                    leverageSuggestion
-                                });
-                            }
+                        // HTF Direction filter
+                        if (!passesDirectionFilter(ctx, candidate.direction)) continue;
+                        individualSignals.push(candidate);
+                    }
+                }
+
+                // ─── Combination Engine: produce combo signals from matching individuals ───
+                const comboSignals = CombinationEngine.evaluate(individualSignals, ctx);
+                const allCandidates = [...individualSignals, ...comboSignals];
+
+                // ─── Build scored final signals ───
+                const symbolSignals: FinalSignal[] = [];
+
+                for (const candidate of allCandidates) {
+                    const { score, label } = ScoringEngine.calculate(ctx, candidate);
+                    
+                    if (score >= config.bot.minSignalScore) {
+                        if (!dedupStore.isCooldown(symbol, candidate.strategyName, candidate.direction)) {
+                            const levels = RiskEngine.calculateLevels(ctx, candidate.direction);
+                            const leverageSuggestion = tradeExecutor.calculateLeverage(levels.riskPercent);
+                            
+                            symbolSignals.push({
+                                ...candidate,
+                                symbol,
+                                timeframe: '5m',
+                                levels,
+                                regime,
+                                score,
+                                confidenceLabel: label,
+                                timestamp: Date.now(),
+                                leverageSuggestion
+                            });
                         }
                     }
                 }
