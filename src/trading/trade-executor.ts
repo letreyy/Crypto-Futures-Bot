@@ -233,10 +233,14 @@ ${list}
 
             const isLong = trade.direction === SignalDirection.LONG;
 
+            const isEntryCandle = trade.timestamp === lastCandle.timestamp;
+
             // ─── Check Stop Loss first (closes entire remaining position) ───
-            const slHit = isLong
-                ? lastCandle.low <= trade.sl
-                : lastCandle.high >= trade.sl;
+            // If it's the same 5m candle we entered on, we cannot use .low/.high because those include 
+            // price action that happened BEFORE our entry. We must evaluate only the current live price (.close).
+            const slHit = isEntryCandle
+                ? (isLong ? lastCandle.close <= trade.sl : lastCandle.close >= trade.sl)
+                : (isLong ? lastCandle.low <= trade.sl : lastCandle.high >= trade.sl);
 
             if (slHit) {
                 const slPnlRaw = isLong
@@ -259,9 +263,9 @@ ${list}
             // ─── Check TP levels (ladder: 25% at each level) ───
             while (trade.tpHit < 4) {
                 const nextTp = trade.tp[trade.tpHit];
-                const tpReached = isLong
-                    ? lastCandle.high >= nextTp
-                    : lastCandle.low <= nextTp;
+                const tpReached = isEntryCandle
+                    ? (isLong ? lastCandle.close >= nextTp : lastCandle.close <= nextTp)
+                    : (isLong ? lastCandle.high >= nextTp : lastCandle.low <= nextTp);
 
                 if (!tpReached) break;
 
