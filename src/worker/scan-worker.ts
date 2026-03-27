@@ -44,7 +44,6 @@ export class ScanWorker {
 
         for (const symbol of topSymbols) {
             if (!this.isRunning) break;
-            if (tradeExecutor.hasActiveTrade(symbol)) continue;
 
             try {
                 // Fetch candles
@@ -77,6 +76,9 @@ export class ScanWorker {
                 };
 
                 await tradeExecutor.updatePaperTrades(ctx);
+
+                // If symbol still has an active trade after updating TP/SL, do not look for new signals
+                if (tradeExecutor.hasActiveTrade(symbol)) continue;
 
                 // ─── GLOBAL FILTERS ───
                 if (!passesGlobalFilters(ctx)) continue;

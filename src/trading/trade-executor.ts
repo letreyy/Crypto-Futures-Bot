@@ -4,6 +4,7 @@ import { SignalDirection } from '../core/constants/enums.js';
 import { telegramNotifier } from '../notifications/telegram/telegram-notifier.js';
 import { Strategy } from '../strategies/base/strategy.js';
 import { universeLoader } from '../market/universe/universe-loader.js';
+import { COMBO_DEFINITIONS } from '../strategies/combination-engine.js';
 
 interface PaperTrade {
     id: string;
@@ -92,6 +93,16 @@ ${lines.join('\n')}
 <i>To toggle, send:</i>
 <code>/toggle StrategyName</code>
 <i>Example:</i> <code>/toggle EMA Pullback</code>`;
+            telegramNotifier.sendTextMessage(msg);
+        });
+
+        // ─── 🧩 Комбо ───
+        telegramNotifier.onCommand(/(\/combos|🧩 Комбо)/, () => {
+            const lines = COMBO_DEFINITIONS.map(c => {
+                const reqStrats = c.requiredStrategies.join(', ');
+                return `🔹 <b>${c.name}</b>\n└ <i>Requires ${c.minMatch} of:</i> ${reqStrats}`;
+            });
+            const msg = `🧩 <b>Combo Strategies</b>\n\n${lines.join('\n\n')}\n\n<i>Combos trigger automatically when their constituent strategies align, offering higher confidence signals.</i>`;
             telegramNotifier.sendTextMessage(msg);
         });
 

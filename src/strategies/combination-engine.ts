@@ -27,7 +27,7 @@ interface ComboDefinition {
     expireMinutes: number;
 }
 
-const COMBO_DEFINITIONS: ComboDefinition[] = [
+export const COMBO_DEFINITIONS: ComboDefinition[] = [
     {
         name: 'Liquidity Trap Reversal',
         id: 'combo-liquidity-trap',
