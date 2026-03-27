@@ -13,6 +13,7 @@ export interface FilterConfig {
     volatilityMaxAtrPct: number;
     sessionEnabled: boolean;
     deadHoursUTC: number[]; // hours to skip, e.g. [0, 1, 2, 3] for 00:00-03:59 UTC
+    btcFilterEnabled: boolean; // only trade in the direction of BTC 1H trend
 }
 
 const DEFAULT_FILTER_CONFIG: FilterConfig = {
@@ -21,6 +22,7 @@ const DEFAULT_FILTER_CONFIG: FilterConfig = {
     volatilityMaxAtrPct: 5.0,    // Above 5% ATR = too volatile / likely manipulated
     sessionEnabled: true,
     deadHoursUTC: [0, 1, 2, 3],  // 00:00-03:59 UTC = dead zone (late Asia, no volume)
+    btcFilterEnabled: true,      // Reject altcoin signals that fight the BTC trend
 };
 
 export const filterConfig: FilterConfig = { ...DEFAULT_FILTER_CONFIG };
@@ -62,12 +64,16 @@ export function passesDirectionFilter(ctx: StrategyContext, direction: SignalDir
     const price = ctx.candles[ctx.candles.length - 1].close;
     const ema200 = ctx.indicators.ema200;
 
-    // HTF Trend Filter: only allow LONGs above EMA200, SHORTs below EMA200
-    if (direction === SignalDirection.LONG && price < ema200) {
-        return false;
+    // ─── Local HTF Trend Filter ───
+    if (filterConfig.htfTrendEnabled) {
+        if (direction === SignalDirection.LONG && price < ema200) return false;
+        if (direction === SignalDirection.SHORT && price > ema200) return false;
     }
-    if (direction === SignalDirection.SHORT && price > ema200) {
-        return false;
+
+    // ─── Global BTC Market Filter ───
+    if (filterConfig.btcFilterEnabled && ctx.btcContext) {
+        if (direction === SignalDirection.LONG && ctx.btcContext.trend === 'BEARISH') return false;
+        if (direction === SignalDirection.SHORT && ctx.btcContext.trend === 'BULLISH') return false;
     }
 
     return true;

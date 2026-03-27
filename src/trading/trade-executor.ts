@@ -19,6 +19,7 @@ interface PaperTrade {
     accumulatedPnl: number;  // Running total of realized PnL from partial closes
     timestamp: number;
     strategyName: string;
+    history: string[];       // Step-by-step trade log for notifications
 }
 
 interface LeverageConfig {
@@ -252,11 +253,13 @@ ${list}
 
                 this.recordStrategyResult(trade.strategyName, totalPnl);
 
+                trade.history.push(`SL hit (${slPnl.toFixed(2)}%)`);
+
                 const cooldownKey = `${trade.symbol}:${trade.strategyName}`;
                 this.slCooldown.set(cooldownKey, Date.now());
                 logger.info(`[SL COOLDOWN] ${cooldownKey} blocked for 1 hour`);
                 logger.info(`[PAPER CLOSED by SL] ${trade.symbol} ${trade.direction} | Partial PnL: ${slPnl.toFixed(2)}% | Total: ${totalPnl.toFixed(2)}%`);
-                telegramNotifier.sendTradeResult(trade.symbol, trade.direction, totalPnl, this.todaysPnlPercent);
+                telegramNotifier.sendTradeResult(trade.symbol, trade.direction, totalPnl, this.todaysPnlPercent, trade.history);
                 return false; // Remove trade
             }
 
@@ -280,6 +283,20 @@ ${list}
                 trade.remainingPortion -= portion;
                 trade.tpHit++;
                 this.todaysPnlPercent += tpPnl;
+                
+                trade.history.push(`TP${trade.tpHit} hit (+${tpPnl.toFixed(2)}%)`);
+
+                // Move trailing stop loss
+                if (trade.tpHit === 1) { // Hit TP1 -> move SL to Break-Even
+                    trade.sl = trade.entryPrice;
+                    trade.history.push(`SL moved to BE (${trade.sl.toFixed(4)})`);
+                } else if (trade.tpHit === 2) { // Hit TP2 -> move SL to TP1
+                    trade.sl = trade.tp[0];
+                    trade.history.push(`SL moved to TP1 (${trade.sl.toFixed(4)})`);
+                } else if (trade.tpHit === 3) { // Hit TP3 -> move SL to TP2
+                    trade.sl = trade.tp[1];
+                    trade.history.push(`SL moved to TP2 (${trade.sl.toFixed(4)})`);
+                }
 
                 logger.info(`[TP${trade.tpHit} HIT] ${trade.symbol} ${trade.direction} | +${tpPnl.toFixed(2)}% (25%) | Remaining: ${(trade.remainingPortion * 100).toFixed(0)}%`);
             }
@@ -289,7 +306,7 @@ ${list}
                 const totalPnl = trade.accumulatedPnl;
                 this.recordStrategyResult(trade.strategyName, totalPnl);
                 logger.info(`[PAPER CLOSED FULL TP] ${trade.symbol} ${trade.direction} | Total: ${totalPnl.toFixed(2)}%`);
-                telegramNotifier.sendTradeResult(trade.symbol, trade.direction, totalPnl, this.todaysPnlPercent);
+                telegramNotifier.sendTradeResult(trade.symbol, trade.direction, totalPnl, this.todaysPnlPercent, trade.history);
                 return false;
             }
 
@@ -333,7 +350,8 @@ ${list}
                 leverage: signal.leverageSuggestion,
                 accumulatedPnl: 0,
                 timestamp: signal.timestamp,
-                strategyName: signal.strategyName
+                strategyName: signal.strategyName,
+                history: [`Entry at ${signal.levels.entry.toFixed(4)}`]
             });
             return;
         }

@@ -42,6 +42,23 @@ export class ScanWorker {
     private async scan() {
         const topSymbols = await universeLoader.getTopSymbols();
 
+        let btcContext: { trend: 'BULLISH' | 'BEARISH'; price: number; ema200: number } | undefined;
+        try {
+            // Fetch 1-hour candles for BTC for higher-timeframe global trend context
+            const btcCandles = await binanceClient.getKlines('BTCUSDT', '1h', 250);
+            if (btcCandles && btcCandles.length > 200) {
+                const btcInds = TechnicalIndicators.calculateSnapshot(btcCandles);
+                const btcPrice = btcCandles[btcCandles.length - 1].close;
+                btcContext = {
+                    trend: btcPrice > btcInds.ema200 ? 'BULLISH' : 'BEARISH',
+                    price: btcPrice,
+                    ema200: btcInds.ema200
+                };
+            }
+        } catch (err: any) {
+            logger.warn('Failed to fetch BTC context, skipping global BTC filter', { error: err.message });
+        }
+
         for (const symbol of topSymbols) {
             if (!this.isRunning) break;
 
@@ -72,7 +89,7 @@ export class ScanWorker {
                 } catch {}
 
                 const ctx: StrategyContext = {
-                    symbol, timeframe: '5m', candles, indicators, prevIndicators, regime, liquidity, funding, openInterest
+                    symbol, timeframe: '5m', candles, indicators, prevIndicators, regime, liquidity, funding, openInterest, btcContext
                 };
 
                 await tradeExecutor.updatePaperTrades(ctx);

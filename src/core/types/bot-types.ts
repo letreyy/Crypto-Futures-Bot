@@ -70,6 +70,11 @@ export interface StrategyContext {
   liquidity: LiquidityContext;
   funding?: FundingData;
   openInterest?: OpenInterestData;
+  btcContext?: {
+    price: number;
+    ema200: number;
+    trend: 'BULLISH' | 'BEARISH';
+  };
 }
 
 export interface StrategySignalCandidate {

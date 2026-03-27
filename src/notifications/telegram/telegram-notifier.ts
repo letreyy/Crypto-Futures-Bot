@@ -60,15 +60,20 @@ export class TelegramNotifier {
         }
     }
 
-    async sendTradeResult(symbol: string, direction: string, pnlPercent: number, totalPnlToday: number): Promise<void> {
+    async sendTradeResult(symbol: string, direction: string, pnlPercent: number, totalPnlToday: number, history: string[] = []): Promise<void> {
         if (!this.bot || !config.telegram.chatId) return;
 
         const emoji = pnlPercent > 0 ? '🏆 WON' : '💀 LOST';
         const sign = pnlPercent > 0 ? '+' : '';
         const totalSign = totalPnlToday > 0 ? '+' : '';
-        const message = `<b>[PAPER TRADE] ${emoji}</b> | ${symbol} ${direction}
+        
+        let message = `<b>[PAPER TRADE] ${emoji}</b> | ${symbol} ${direction}\n\n`;
+        
+        if (history.length > 0) {
+            message += `📋 <b>Trade Log:</b>\n${history.map((step, idx) => `  ${idx + 1}. ${step}`).join('\n')}\n\n`;
+        }
 
-💰 <b>Result:</b> ${sign}${pnlPercent.toFixed(2)}%
+        message += `💰 <b>Result:</b> ${sign}${pnlPercent.toFixed(2)}%
 📊 <b>Total Today:</b> ${totalSign}${totalPnlToday.toFixed(2)}%`;
 
         try {
@@ -110,6 +115,10 @@ export class TelegramNotifier {
                 const oiChange = ((ctx.openInterest.oi - ctx.openInterest.oiHistory[0]) / ctx.openInterest.oiHistory[0]) * 100;
                 const oiDir = oiChange > 0 ? '↗️' : '↘️';
                 contextStats += `\n🧲 <b>OI Change:</b> ${oiDir} ${oiChange.toFixed(2)}%`;
+            }
+            if (ctx.btcContext) {
+                const btcEmoji = ctx.btcContext.trend === 'BULLISH' ? '🟢' : '🔴';
+                contextStats += `\n🌍 <b>BTC 1H Trend:</b> ${btcEmoji} ${ctx.btcContext.trend} (${ctx.btcContext.price.toFixed(0)})`;
             }
         }
 
