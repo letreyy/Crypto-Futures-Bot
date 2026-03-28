@@ -78,11 +78,15 @@ export class LiquiditySweepStrategy implements Strategy {
         if (last.volume <= indicators.volumeSma * 1.2) return null;
 
         if (liquidity.sweptLow && liquidity.reclaimedLevel && liquidity.localRangeLow) {
+            // SL behind the wick that swept (the absolute low of recent candles)
+            const sweepWickLow = Math.min(...candles.slice(-5).map(c => c.low));
             return {
                 strategyName: this.name,
                 direction: SignalDirection.LONG,
                 orderType: 'LIMIT',
                 suggestedEntry: liquidity.localRangeLow, // Retest of the swept level
+                suggestedTarget: liquidity.localRangeHigh || undefined, // Target the opposite side of the range
+                suggestedSl: sweepWickLow - (indicators.atr * 0.2), // Behind the sweep wick + buffer
                 confidence: 90,
                 reasons: [
                     'Swing low sweep with volume', 
@@ -93,11 +97,15 @@ export class LiquiditySweepStrategy implements Strategy {
             };
         }
         if (liquidity.sweptHigh && liquidity.reclaimedLevel && liquidity.localRangeHigh) {
+            // SL behind the wick that swept (the absolute high of recent candles)
+            const sweepWickHigh = Math.max(...candles.slice(-5).map(c => c.high));
             return {
                 strategyName: this.name,
                 direction: SignalDirection.SHORT,
                 orderType: 'LIMIT',
                 suggestedEntry: liquidity.localRangeHigh, // Retest of the swept level
+                suggestedTarget: liquidity.localRangeLow || undefined, // Target the opposite side of the range
+                suggestedSl: sweepWickHigh + (indicators.atr * 0.2), // Behind the sweep wick + buffer
                 confidence: 90,
                 reasons: [
                     'Swing high sweep with volume', 

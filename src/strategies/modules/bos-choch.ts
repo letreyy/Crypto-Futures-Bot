@@ -109,6 +109,8 @@ export class BosChochStrategy implements Strategy {
                 direction: SignalDirection.LONG,
                 orderType: 'LIMIT',
                 suggestedEntry: discountEntry,
+                suggestedTarget: lastSwingHigh, // Target is the broken swing high (liquidity pool)
+                suggestedSl: legLow - (indicators.atr * 0.3), // SL behind the leg low + buffer
                 confidence: signalType === 'BOS' ? 80 : 85, // CHoCH pullbacks are highly reliable
                 reasons: [
                     ...reasons,
@@ -151,6 +153,8 @@ export class BosChochStrategy implements Strategy {
                 direction: SignalDirection.SHORT,
                 orderType: 'LIMIT',
                 suggestedEntry: premiumEntry,
+                suggestedTarget: lastSwingLow, // Target is the broken swing low (liquidity pool)
+                suggestedSl: legHigh + (indicators.atr * 0.3), // SL behind the leg high + buffer
                 confidence: signalType === 'BOS' ? 80 : 85,
                 reasons: [
                     ...reasons,

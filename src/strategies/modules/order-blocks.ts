@@ -44,11 +44,14 @@ export class OrderBlocksStrategy implements Strategy {
                     // Check if current price is approaching the OB (within 2% but not yet touched)
                     const lastPrice = candles[candles.length - 1].close;
                     if (lastPrice > obHigh && lastPrice < obHigh * 1.02) {
+                        const obLow = prev2.low;
                         return {
                             strategyName: this.name,
                             direction: SignalDirection.LONG,
                             orderType: 'LIMIT',
                             suggestedEntry: obHigh, // Limit order at the top of the OB
+                            suggestedTarget: ctx.liquidity.localRangeHigh || (obHigh + (obHigh - obLow) * 3), // Target opposite liquidity or 3R
+                            suggestedSl: obLow - (indicators.atr * 0.2), // Stop loss slightly below the Order Block base
                             confidence: 85,
                             reasons: [
                                 `Unmitigated Bullish Order Block found at ${obHigh.toFixed(4)}`,
@@ -83,11 +86,14 @@ export class OrderBlocksStrategy implements Strategy {
                 if (unmitigated) {
                     const lastPrice = candles[candles.length - 1].close;
                     if (lastPrice < obLow && lastPrice > obLow * 0.98) {
+                        const obHigh = prev2.high;
                         return {
                             strategyName: this.name,
                             direction: SignalDirection.SHORT,
                             orderType: 'LIMIT',
                             suggestedEntry: obLow, // Limit order at the bottom of the OB
+                            suggestedTarget: ctx.liquidity.localRangeLow || (obLow - (obHigh - obLow) * 3),
+                            suggestedSl: obHigh + (indicators.atr * 0.2), // Stop loss slightly above the Order Block ceiling
                             confidence: 85,
                             reasons: [
                                 `Unmitigated Bearish Order Block found at ${obLow.toFixed(4)}`,

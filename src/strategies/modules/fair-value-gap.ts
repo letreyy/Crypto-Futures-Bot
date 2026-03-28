@@ -132,6 +132,8 @@ export class FairValueGapStrategy implements Strategy {
                     direction: SignalDirection.LONG,
                     orderType: 'LIMIT',
                     suggestedEntry: zone.midpoint, // Equilibrium (50%)
+                    suggestedTarget: ctx.liquidity.localRangeHigh || (zone.top + (zone.top - zone.bottom) * 3), // Opposite liquidity or 3x gap size
+                    suggestedSl: zone.bottom - (indicators.atr * 0.2), // Behind the full FVG bottom + tiny buffer
                     confidence: 85,
                     reasons: [
                         `Bullish FVG found: zone ${zone.bottom.toFixed(4)}–${zone.top.toFixed(4)}`,
@@ -159,6 +161,8 @@ export class FairValueGapStrategy implements Strategy {
                     direction: SignalDirection.SHORT,
                     orderType: 'LIMIT',
                     suggestedEntry: zone.midpoint,
+                    suggestedTarget: ctx.liquidity.localRangeLow || (zone.bottom - (zone.top - zone.bottom) * 3),
+                    suggestedSl: zone.top + (indicators.atr * 0.2), // Behind the full FVG top + tiny buffer
                     confidence: 85,
                     reasons: [
                         `Bearish FVG found: zone ${zone.bottom.toFixed(4)}–${zone.top.toFixed(4)}`,

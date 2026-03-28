@@ -50,6 +50,8 @@ export class VwapBandsStrategy implements Strategy {
                     direction: SignalDirection.LONG,
                     orderType: 'LIMIT',
                     suggestedEntry: band3Lower,
+                    suggestedTarget: vwap, // Mean reversion back to VWAP
+                    suggestedSl: band3Lower - (1.5 * stdDev), // Beyond the extreme standard deviation
                     confidence: 85,
                     reasons: [
                         `Price crashed below VWAP -2σ`,
@@ -69,6 +71,8 @@ export class VwapBandsStrategy implements Strategy {
                     direction: SignalDirection.SHORT,
                     orderType: 'LIMIT',
                     suggestedEntry: band3Upper,
+                    suggestedTarget: vwap, // Mean reversion back to VWAP
+                    suggestedSl: band3Upper + (1.5 * stdDev), // Beyond the extreme standard deviation
                     confidence: 85,
                     reasons: [
                         `Price pumped above VWAP +2σ`,

@@ -82,6 +82,8 @@ export interface StrategySignalCandidate {
   direction: SignalDirection;
   orderType?: 'MARKET' | 'LIMIT';
   suggestedEntry?: number;
+  suggestedTarget?: number; // Primary structural target (e.g. liquidity pool)
+  suggestedSl?: number;     // Absolute structural invalidation point
   confidence: number; // 0..100
   reasons: string[];
   expireMinutes: number;

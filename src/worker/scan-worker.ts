@@ -139,7 +139,7 @@ export class ScanWorker {
                     
                     if (score >= config.bot.minSignalScore) {
                         if (!dedupStore.isCooldown(symbol, candidate.strategyName, candidate.direction)) {
-                            const levels = RiskEngine.calculateLevels(ctx, candidate.direction, candidate.suggestedEntry);
+                            const levels = RiskEngine.calculateLevels(ctx, candidate);
                             const leverageSuggestion = tradeExecutor.calculateLeverage(levels.riskPercent);
                             
                             symbolSignals.push({
