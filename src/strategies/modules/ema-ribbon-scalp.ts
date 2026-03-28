@@ -38,6 +38,8 @@ export class EmaRibbonScalpStrategy implements Strategy {
                 return {
                     strategyName: this.name,
                     direction: SignalDirection.LONG,
+                    suggestedTarget: undefined, // Momentum scalp -> let RiskEngine trail or use localRangeHigh
+                    suggestedSl: ribbon[4] - (indicators.atr * 0.2), // Behind the EMA 55 ribbon baseline
                     confidence: 82,
                     reasons: [
                         'EMA Ribbon fully aligned bullish (8>13>21>34>55)',
@@ -59,6 +61,8 @@ export class EmaRibbonScalpStrategy implements Strategy {
                 return {
                     strategyName: this.name,
                     direction: SignalDirection.SHORT,
+                    suggestedTarget: undefined, // Momentum scalp
+                    suggestedSl: ribbon[4] + (indicators.atr * 0.2), // Behind the EMA 55 ribbon baseline
                     confidence: 82,
                     reasons: [
                         'EMA Ribbon fully aligned bearish (8<13<21<34<55)',

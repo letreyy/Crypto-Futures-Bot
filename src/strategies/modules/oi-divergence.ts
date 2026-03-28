@@ -21,24 +21,30 @@ export class OIDivergenceStrategy implements Strategy {
 
         // Scenario 1: Price goes up significantly, but OI goes down -> Longs are closing, weakening trend
         if (priceChange > 0.01 && oiChange < -0.01) {
-            return {
-                strategyName: this.name,
-                direction: SignalDirection.SHORT,
-                confidence: 70,
-                reasons: ['Price up but OI down (Longs taking profit)', 'Trend weakening divergence'],
-                expireMinutes: 20
-            };
+                const swingHigh = Math.max(...candles.slice(-5).map(c => c.high));
+                return {
+                    strategyName: this.name,
+                    direction: SignalDirection.SHORT,
+                    suggestedTarget: ctx.liquidity.localRangeLow || undefined,
+                    suggestedSl: swingHigh + (ctx.indicators.atr * 0.2),
+                    confidence: 70,
+                    reasons: ['Price up but OI down (Longs taking profit)', 'Trend weakening divergence'],
+                    expireMinutes: 20
+                };
         }
 
         // Scenario 2: Price goes down significantly, but OI goes down -> Shorts are closing, weakening downtrend
         if (priceChange < -0.01 && oiChange < -0.01) {
-            return {
-                strategyName: this.name,
-                direction: SignalDirection.LONG,
-                confidence: 70,
-                reasons: ['Price down but OI down (Shorts taking profit)', 'Trend weakening divergence'],
-                expireMinutes: 20
-            };
+                const swingLow = Math.min(...candles.slice(-5).map(c => c.low));
+                return {
+                    strategyName: this.name,
+                    direction: SignalDirection.LONG,
+                    suggestedTarget: ctx.liquidity.localRangeHigh || undefined,
+                    suggestedSl: swingLow - (ctx.indicators.atr * 0.2),
+                    confidence: 70,
+                    reasons: ['Price down but OI down (Shorts taking profit)', 'Trend weakening divergence'],
+                    expireMinutes: 20
+                };
         }
 
         // Scenario 3: Price drops rapidly, OI shoots up -> Aggressive new Shorts entering, potential bounce squeeze later,

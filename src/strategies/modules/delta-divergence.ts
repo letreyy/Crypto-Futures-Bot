@@ -64,9 +64,12 @@ export class DeltaDivergenceStrategy implements Strategy {
             // Additional confirm: delta was positive in earlier windows (confirms it's a flip, not noise)
             if (delta1 > 0 || delta2 > 0) {
                 if (indicators.rsi > 58) {
+                    const swingHigh = Math.max(...candles.slice(-5).map(c => c.high));
                     return {
                         strategyName: this.name,
                         direction: SignalDirection.SHORT,
+                        suggestedTarget: indicators.vwap, // Mean reversion
+                        suggestedSl: swingHigh + (indicators.atr * 0.2),
                         confidence: 76,
                         reasons: [
                             'Price rising but net delta turned negative',
@@ -84,9 +87,12 @@ export class DeltaDivergenceStrategy implements Strategy {
         if (price3 < 0 && delta3 > 0 && delta3 > delta2 * 0.5) {
             if (delta1 < 0 || delta2 < 0) {
                 if (indicators.rsi < 42) {
+                    const swingLow = Math.min(...candles.slice(-5).map(c => c.low));
                     return {
                         strategyName: this.name,
                         direction: SignalDirection.LONG,
+                        suggestedTarget: indicators.vwap, // Mean reversion
+                        suggestedSl: swingLow - (indicators.atr * 0.2),
                         confidence: 76,
                         reasons: [
                             'Price falling but net delta turned positive',

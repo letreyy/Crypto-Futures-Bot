@@ -46,6 +46,8 @@ export class RangeBounceStrategy implements Strategy {
             return {
                 strategyName: this.name,
                 direction: SignalDirection.LONG,
+                suggestedTarget: liquidity.localRangeHigh || undefined,
+                suggestedSl: (liquidity.localRangeLow || last.low) - (indicators.atr * 0.2),
                 confidence: 65,
                 reasons: ['Range floor bounce', 'Flat regime (ADX < 18)', 'RSI oversold', `ATR: ${atrPct.toFixed(2)}% (narrow)`],
                 expireMinutes: 30
@@ -55,6 +57,8 @@ export class RangeBounceStrategy implements Strategy {
             return {
                 strategyName: this.name,
                 direction: SignalDirection.SHORT,
+                suggestedTarget: liquidity.localRangeLow || undefined,
+                suggestedSl: (liquidity.localRangeHigh || last.high) + (indicators.atr * 0.2),
                 confidence: 65,
                 reasons: ['Range ceiling bounce', 'Flat regime (ADX < 18)', 'RSI overbought', `ATR: ${atrPct.toFixed(2)}% (narrow)`],
                 expireMinutes: 30
@@ -81,6 +85,8 @@ export class BreakoutFailureStrategy implements Strategy {
             return {
                 strategyName: this.name,
                 direction: SignalDirection.SHORT,
+                suggestedTarget: liquidity.localRangeLow || undefined,
+                suggestedSl: last.high + (indicators.atr * 0.2), // Behind the bull trap wick
                 confidence: 80,
                 reasons: ['Failed bullish breakout', 'Return to range', 'Bull Trap + volume spike'],
                 expireMinutes: 25
@@ -91,6 +97,8 @@ export class BreakoutFailureStrategy implements Strategy {
             return {
                 strategyName: this.name,
                 direction: SignalDirection.LONG,
+                suggestedTarget: liquidity.localRangeHigh || undefined,
+                suggestedSl: last.low - (indicators.atr * 0.2), // Behind the bear trap wick
                 confidence: 80,
                 reasons: ['Failed bearish breakdown', 'Return to range', 'Bear Trap + volume spike'],
                 expireMinutes: 25

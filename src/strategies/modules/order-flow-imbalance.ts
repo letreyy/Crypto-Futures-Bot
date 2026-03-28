@@ -23,6 +23,8 @@ export class OrderFlowImbalanceStrategy implements Strategy {
             return {
                 strategyName: this.name,
                 direction: SignalDirection.LONG,
+                suggestedTarget: liquidity.localRangeHigh || undefined,
+                suggestedSl: last.low - (indicators.atr * 0.2), // Below the imbalance candle
                 confidence: 85,
                 reasons: ['Strong Buying Imbalance at Swing Low', 'High relative volume', 'Bullish Delta approximation'],
                 expireMinutes: 20
@@ -35,6 +37,8 @@ export class OrderFlowImbalanceStrategy implements Strategy {
             return {
                 strategyName: this.name,
                 direction: SignalDirection.SHORT,
+                suggestedTarget: liquidity.localRangeLow || undefined,
+                suggestedSl: last.high + (indicators.atr * 0.2), // Above the imbalance candle
                 confidence: 85,
                 reasons: ['Strong Selling Imbalance at Swing High', 'High relative volume', 'Bearish Delta approximation'],
                 expireMinutes: 20

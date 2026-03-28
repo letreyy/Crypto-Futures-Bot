@@ -28,9 +28,12 @@ export class VWAPReversionStrategy implements Strategy {
             if (!bullishConfirm) return null;
 
             if (last.volume > indicators.volumeSma * 1.3) {
+                const swingLow = Math.min(...candles.slice(-5).map(c => c.low));
                 return {
                     strategyName: this.name,
                     direction: SignalDirection.LONG,
+                    suggestedTarget: indicators.vwap,
+                    suggestedSl: swingLow - (indicators.atr * 0.2),
                     confidence: 77,
                     reasons: [
                         `VWAP deviation: ${deviationPct}% (>${(adaptiveThreshold / indicators.vwap * 100).toFixed(2)}% threshold)`,
@@ -48,9 +51,12 @@ export class VWAPReversionStrategy implements Strategy {
             if (!bearishConfirm) return null;
 
             if (last.volume > indicators.volumeSma * 1.3) {
+                const swingHigh = Math.max(...candles.slice(-5).map(c => c.high));
                 return {
                     strategyName: this.name,
                     direction: SignalDirection.SHORT,
+                    suggestedTarget: indicators.vwap,
+                    suggestedSl: swingHigh + (indicators.atr * 0.2),
                     confidence: 77,
                     reasons: [
                         `VWAP deviation: +${deviationPct}% (>${(adaptiveThreshold / indicators.vwap * 100).toFixed(2)}% threshold)`,
