@@ -168,8 +168,8 @@ Current: <b>${levInfo}</b>
         });
 
         // ─── 🛡️ Риск Менеджмент ───
-        telegramNotifier.onCommand(/(\/risk|🛡️ Риск)/, (_msg: any, match: any) => {
-            const riskStr = match[1].split(' ')[1]; // either "/risk 2.0" or just "/risk"
+        telegramNotifier.onCommand(/(?:\/risk|🛡️ Риск)(?:\s+([\d.]+))?/, (_msg: any, match: any) => {
+            const riskStr = match[1]; // e.g. "2.0" or undefined
             if (!riskStr || isNaN(parseFloat(riskStr))) {
                 const msg = `🛡️ <b>Risk Management</b>
 Current Target Risk: <b>${this.targetRiskPercent.toFixed(1)}%</b> per trade

@@ -63,7 +63,7 @@ export class TelegramNotifier {
     async sendTradeResult(symbol: string, direction: string, pnlPercent: number, totalPnlToday: number, history: string[] = []): Promise<void> {
         if (!this.bot || !config.telegram.chatId) return;
 
-        const emoji = pnlPercent > 0 ? '🏆 WON' : '💀 LOST';
+        const emoji = pnlPercent > 0 ? '🏆 WON' : '📉 LOSS';
         const sign = pnlPercent > 0 ? '+' : '';
         const totalSign = totalPnlToday > 0 ? '+' : '';
         
