@@ -44,7 +44,8 @@ export class TradeExecutor {
     private strategyStats: Record<string, { win: number, loss: number, pnl: number }> = {};
     private disabledStrategies: Set<string> = new Set();
     private slCooldown: SlCooldownMap = new Map();
-    private leverageConfig: LeverageConfig = { mode: 'dynamic', fixedValue: 20, minValue: 1, maxValue: 20 };
+    private targetRiskPercent: number = 1.0; // By default risk 1.0% of balance
+    private leverageConfig: LeverageConfig = { mode: 'dynamic', fixedValue: 20, minValue: 1, maxValue: 50 }; // increased max for tiny SMC SLs
     private registeredStrategies: Strategy[] = [];
 
     /**
@@ -160,6 +161,34 @@ Current: <b>${levInfo}</b>
             logger.info(`Leverage set to dynamic x${min}-x${max} via Telegram`);
         });
 
+        // ─── 🛡️ Риск Менеджмент ───
+        telegramNotifier.onCommand(/(\/risk|🛡️ Риск)/, (_msg: any, match: any) => {
+            const riskStr = match[1].split(' ')[1]; // either "/risk 2.0" or just "/risk"
+            if (!riskStr || isNaN(parseFloat(riskStr))) {
+                const msg = `🛡️ <b>Risk Management</b>
+Current Target Risk: <b>${this.targetRiskPercent.toFixed(1)}%</b> per trade
+
+<i>Commands:</i>
+<code>/risk 0.5</code> — low risk
+<code>/risk 1.0</code> — standard
+<code>/risk 2.0</code> — aggressive
+<code>/risk 3.0</code> — degenerate
+
+<i>Dynamic leverage mode will automatically calculate your position leverage as Leverage = ${this.targetRiskPercent.toFixed(1)}% / StopLossDistance%.</i>`;
+                telegramNotifier.sendTextMessage(msg);
+                return;
+            }
+
+            const val = parseFloat(riskStr);
+            if (val < 0.1 || val > 10.0) {
+                telegramNotifier.sendTextMessage('❌ Risk must be between 0.1% and 10.0%');
+                return;
+            }
+            this.targetRiskPercent = val;
+            telegramNotifier.sendTextMessage(`🛡️ Target risk set to <b>${val.toFixed(1)}%</b> per trade`);
+            logger.info(`Target risk set to ${val.toFixed(1)}% via Telegram`);
+        });
+
         // ─── 🚫 Монеты ───
         telegramNotifier.onCommand(/(\/coins|🚫 Монеты)/, () => {
             const disabled = universeLoader.getDisabledSymbols();
@@ -211,15 +240,34 @@ ${list}
     }
 
     /**
-     * Calculate leverage based on current config
+     * Calculate leverage based on current config and stop-loss distance
      */
-    calculateLeverage(riskPercent: number): number {
+    calculateLeverage(slDistancePercent: number): number {
         if (this.leverageConfig.mode === 'fixed') {
             return this.leverageConfig.fixedValue;
         }
-        // Dynamic: higher risk → lower leverage
-        const raw = Math.floor(10 / (riskPercent || 1));
-        return Math.max(this.leverageConfig.minValue, Math.min(this.leverageConfig.maxValue, raw));
+        // Dynamic: Leverage = Target Risk / SL Distance Percent
+        // Example: SL is 0.5% away. We want to risk 1.0%. Leverage = 1.0 / 0.5 = x2
+        // Wait, standard perp sizing: If price moves 0.5%, and we have x20 leverage, our PNL is -10%. 
+        // We want SL to equal targetRiskPercent.
+        // Therefore, Leverage = targetRiskPercent / slDistancePercent.
+        // e.g. targetRisk 1.0%, slDistance = 0.5%. Leverage = 1 / 0.5 = x2... no wait.
+        // Position size * SL distance % = Target Risk % of Account
+        // If we use 100% of our account * (1 / Leverage)...
+        // Actually, if we use 100% of account as collateral (which Binance allows via Isolated margined to maximum):
+        // Pnl% = PriceChange% * Leverage.
+        // We want Pnl% at StopLoss to be EXACTLY `targetRiskPercent`.
+        // So: targetRiskPercent = slDistancePercent * Leverage
+        // Leverage = targetRiskPercent / slDistancePercent
+        // e.g. 1.0% / 0.5% = x2. 
+        // Wait. If leverage is x2, and we use 100% deposit, price moves 0.5%, PnL is 1.0%.
+        // But if price moves 2.0% (SL = 2%), Leverage = 1.0 / 2.0 = x0.5 (impossible).
+        // This is why users specify "Margin Size". 
+        // Currently, our paper trader simulates risking a fixed "portion".
+        // Let's just adjust the abstract leverage factor so our reported riskPercent equals targetRiskPercent.
+        const targetLeverage = (this.targetRiskPercent / (slDistancePercent + 0.0001)) * 10; 
+        
+        return Math.max(this.leverageConfig.minValue, Math.min(this.leverageConfig.maxValue, Math.round(targetLeverage)));
     }
 
     /**

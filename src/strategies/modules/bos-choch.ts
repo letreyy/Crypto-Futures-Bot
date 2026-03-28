@@ -99,12 +99,22 @@ export class BosChochStrategy implements Strategy {
                 reasons.push('Potential trend reversal from bearish to bullish');
             }
 
+            // Calculate 50% retracement (Discount Zone) of the breakout leg
+            const legHigh = last.high;
+            const legLow = lastSwingLow;
+            const discountEntry = legLow + (legHigh - legLow) * 0.5;
+
             return {
                 strategyName: this.name,
                 direction: SignalDirection.LONG,
-                confidence: signalType === 'BOS' ? 80 : 75, // CHoCH slightly less confident (reversal)
-                reasons,
-                expireMinutes: 20
+                orderType: 'LIMIT',
+                suggestedEntry: discountEntry,
+                confidence: signalType === 'BOS' ? 80 : 85, // CHoCH pullbacks are highly reliable
+                reasons: [
+                    ...reasons,
+                    `SMC: Waiting for pullback to 50% discount zone (${discountEntry.toFixed(4)})`
+                ],
+                expireMinutes: 60 * 6 // 6 hours
             };
         }
 
@@ -131,12 +141,22 @@ export class BosChochStrategy implements Strategy {
                 reasons.push('Potential trend reversal from bullish to bearish');
             }
 
+            // Calculate Premium Zone (50% retracement of the dumping leg)
+            const legHigh = lastSwingHigh;
+            const legLow = last.low;
+            const premiumEntry = legLow + (legHigh - legLow) * 0.5;
+
             return {
                 strategyName: this.name,
                 direction: SignalDirection.SHORT,
-                confidence: signalType === 'BOS' ? 80 : 75,
-                reasons,
-                expireMinutes: 20
+                orderType: 'LIMIT',
+                suggestedEntry: premiumEntry,
+                confidence: signalType === 'BOS' ? 80 : 85,
+                reasons: [
+                    ...reasons,
+                    `SMC: Waiting for pullback to 50% premium zone (${premiumEntry.toFixed(4)})`
+                ],
+                expireMinutes: 60 * 6 // 6 hours
             };
         }
 

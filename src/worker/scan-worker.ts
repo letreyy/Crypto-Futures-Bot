@@ -13,6 +13,7 @@ import { dedupStore } from '../state/dedup-store.js';
 import { config } from '../config/index.js';
 import { FinalSignal, StrategyContext, StrategySignalCandidate } from '../core/types/bot-types.js';
 import { passesGlobalFilters, passesDirectionFilter } from '../strategies/global-filters.js';
+import { TimeFilters } from '../market/time-filters.js';
 import { CombinationEngine } from '../strategies/combination-engine.js';
 
 export class ScanWorker {
@@ -102,10 +103,14 @@ export class ScanWorker {
 
                 // ─── Strategy execution ───
                 const individualSignals: StrategySignalCandidate[] = [];
+                const currentSession = TimeFilters.getCurrentSession();
 
                 for (const strategy of strategyRegistry) {
                     // Skip disabled strategies
                     if (tradeExecutor.isStrategyDisabled(strategy.name)) continue;
+
+                    // Skip if strategy is blocked in the current trading session (e.g. Asian Session)
+                    if (!TimeFilters.isStrategyAllowed(strategy.id, currentSession)) continue;
 
                     // Skip if this symbol+strategy combo just got stopped out
                     if (tradeExecutor.isOnSlCooldown(symbol, strategy.name)) continue;

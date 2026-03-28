@@ -105,75 +105,68 @@ export class FairValueGapStrategy implements Strategy {
 
         const currentIdx = candles.length - 1;
 
-        // ─── Look for current price inside/touching an FVG zone ───
+        // ─── Find an unmitigated FVG and place LIMIT at Equilibrium (50%) ───
         for (const zone of fvgZones) {
             const age = currentIdx - zone.candleIdx;
+
+            // FVG must be recent but not literally the current candle
+            if (age < 2 || age > 30) continue;
 
             // Skip zones where price already passed the midpoint (losing/lost their magnetism)
             if (zone.partiallyFilled) continue;
 
-            // FVG must be recent and not yet too old (price hasn't moved far enough to invalidate)
-            if (age < 2 || age > 30) continue;
-
-            const isTouchingZone = currentPrice >= zone.bottom && currentPrice <= zone.top;
-            const isJustBelowZone = currentPrice < zone.bottom && currentPrice >= zone.bottom * 0.998; // within 0.2% below
-            const isJustAboveZone = currentPrice > zone.top && currentPrice <= zone.top * 1.002;       // within 0.2% above
-
             // ─── BULLISH FVG RETEST ───
-            // Touch the bottom of a bullish FVG, price pulls back INTO the gap → expect bounce
-            if (zone.direction === 'BULLISH' && (isTouchingZone || isJustBelowZone)) {
+            // Price is currently above the midpoint, we set a LIMIT order exactly at the midpoint
+            if (zone.direction === 'BULLISH' && currentPrice > zone.midpoint) {
                 // Trend filter: price must be in bullish structure
                 if (indicators.ema50 < indicators.ema200) continue; // Only trade FVG LONG in HTF uptrend
 
-                // Rejection signal: current candle must show bullish signs
-                const wickRejection = (last.low < zone.bottom) && (last.close > zone.bottom);
-                const bodyInZone = last.close >= zone.bottom && last.close <= zone.top;
-                const bullishClose = last.close > last.open;
-
-                if (!((wickRejection || bodyInZone) && bullishClose)) continue;
-
-                // RSI filter: not overbought
+                // RSI filter: not overbought, meaning there is room to run after the bounce
                 if (indicators.rsi > 72) continue;
+
+                // We don't want to set a limit if price is too far away (e.g. 5% away)
+                if ((currentPrice - zone.midpoint) / zone.midpoint > 0.05) continue;
 
                 return {
                     strategyName: this.name,
                     direction: SignalDirection.LONG,
-                    confidence: 78,
+                    orderType: 'LIMIT',
+                    suggestedEntry: zone.midpoint, // Equilibrium (50%)
+                    confidence: 85,
                     reasons: [
-                        `Bullish FVG retest: zone ${zone.bottom.toFixed(4)}–${zone.top.toFixed(4)}`,
+                        `Bullish FVG found: zone ${zone.bottom.toFixed(4)}–${zone.top.toFixed(4)}`,
+                        `Targeting FVG Equilibrium (50%): ${zone.midpoint.toFixed(4)}`,
                         `Gap size: ${zone.strength.toFixed(3)}% | Impulse vol: ${zone.volumeStrength.toFixed(1)}x avg`,
-                        `FVG age: ${age} candles | Bullish rejection at support`,
-                        `EMA20 > EMA50 confirms uptrend context`
+                        `FVG age: ${age} candles`
                     ],
-                    expireMinutes: 25
+                    expireMinutes: 60 * 12 // 12 hours
                 };
             }
-
             // ─── BEARISH FVG RETEST ───
-            // Price bounces back up INTO a bearish FVG → expect rejection
-            if (zone.direction === 'BEARISH' && (isTouchingZone || isJustAboveZone)) {
+            // Price is currently below the midpoint, we set a LIMIT order exactly at the midpoint
+            if (zone.direction === 'BEARISH' && currentPrice < zone.midpoint) {
                 // Trend filter: downtrend
                 if (indicators.ema50 > indicators.ema200) continue; // Only trade FVG SHORT in HTF downtrend
 
-                const wickRejection = (last.high > zone.top) && (last.close < zone.top);
-                const bodyInZone = last.close >= zone.bottom && last.close <= zone.top;
-                const bearishClose = last.close < last.open;
-
-                if (!((wickRejection || bodyInZone) && bearishClose)) continue;
-
+                // RSI filter: not oversold, meaning room to drop
                 if (indicators.rsi < 28) continue;
+
+                // We don't want to set a limit if price is too far away
+                if ((zone.midpoint - currentPrice) / zone.midpoint > 0.05) continue;
 
                 return {
                     strategyName: this.name,
                     direction: SignalDirection.SHORT,
-                    confidence: 78,
+                    orderType: 'LIMIT',
+                    suggestedEntry: zone.midpoint,
+                    confidence: 85,
                     reasons: [
-                        `Bearish FVG retest: zone ${zone.bottom.toFixed(4)}–${zone.top.toFixed(4)}`,
+                        `Bearish FVG found: zone ${zone.bottom.toFixed(4)}–${zone.top.toFixed(4)}`,
+                        `Targeting FVG Equilibrium (50%): ${zone.midpoint.toFixed(4)}`,
                         `Gap size: ${zone.strength.toFixed(3)}% | Impulse vol: ${zone.volumeStrength.toFixed(1)}x avg`,
-                        `FVG age: ${age} candles | Bearish rejection at resistance`,
-                        `EMA20 < EMA50 confirms downtrend context`
+                        `FVG age: ${age} candles`
                     ],
-                    expireMinutes: 25
+                    expireMinutes: 60 * 12 // 12 hours
                 };
             }
         }
