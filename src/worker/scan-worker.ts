@@ -64,7 +64,7 @@ export class ScanWorker {
 
             try {
                 // Fetch candles
-                const candles = await binanceClient.getKlines(symbol, '5m', config.bot.klinesLimit);
+                const candles = await binanceClient.getKlines(symbol, '15m', config.bot.klinesLimit);
                 if (!candles || candles.length < 200) continue;
 
                 // Indicator snapshots
@@ -80,7 +80,7 @@ export class ScanWorker {
                     const [fr, currentOI, oiHistory] = await Promise.all([
                         binanceClient.getFundingRate(symbol),
                         binanceClient.getOpenInterest(symbol),
-                        binanceClient.getOpenInterestHist(symbol, '5m', 30)
+                        binanceClient.getOpenInterestHist(symbol, '15m', 30)
                     ]);
                     funding = fr || undefined;
                     if (currentOI !== null && oiHistory.length > 0) {
@@ -89,7 +89,7 @@ export class ScanWorker {
                 } catch {}
 
                 const ctx: StrategyContext = {
-                    symbol, timeframe: '5m', candles, indicators, prevIndicators, regime, liquidity, funding, openInterest, btcContext
+                    symbol, timeframe: '15m', candles, indicators, prevIndicators, regime, liquidity, funding, openInterest, btcContext
                 };
 
                 await tradeExecutor.updatePaperTrades(ctx);
@@ -130,13 +130,13 @@ export class ScanWorker {
                     
                     if (score >= config.bot.minSignalScore) {
                         if (!dedupStore.isCooldown(symbol, candidate.strategyName, candidate.direction)) {
-                            const levels = RiskEngine.calculateLevels(ctx, candidate.direction);
+                            const levels = RiskEngine.calculateLevels(ctx, candidate.direction, candidate.suggestedEntry);
                             const leverageSuggestion = tradeExecutor.calculateLeverage(levels.riskPercent);
                             
                             symbolSignals.push({
                                 ...candidate,
                                 symbol,
-                                timeframe: '5m',
+                                timeframe: '15m',
                                 levels,
                                 regime,
                                 score,

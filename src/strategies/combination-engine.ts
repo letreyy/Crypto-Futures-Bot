@@ -42,16 +42,15 @@ export const COMBO_DEFINITIONS: ComboDefinition[] = [
         expireMinutes: 25
     },
     {
-        name: 'Trend Pullback',
-        id: 'combo-trend-pullback',
-        requiredStrategies: ['EMA Pullback', 'EMA Ribbon Scalp'],
+        name: 'Trend Continuity',
+        id: 'combo-trend-continuity',
+        requiredStrategies: ['Order Flow Imbalance', 'EMA Ribbon Scalp'],
         minMatch: 2,
         contextFilter: (_ctx) => {
-            // HTF trend must align: price above EMA200 for long, below for short
-            return true; // Direction check handled in matching logic
+            return true;
         },
         confidence: 88,
-        reasons: ['COMBO: Multi-EMA trend pullback', 'EMA pullback + ribbon alignment', 'Strong trend continuation'],
+        reasons: ['COMBO: Trend continuation', 'Order flow + ribbon alignment', 'Strong trend momentum'],
         expireMinutes: 30
     },
     {
@@ -66,7 +65,7 @@ export const COMBO_DEFINITIONS: ComboDefinition[] = [
     {
         name: 'Breakout With Fuel',
         id: 'combo-breakout-fuel',
-        requiredStrategies: ['Momentum Breakout', 'OI Divergence', 'BOS/CHoCH'],
+        requiredStrategies: ['Bos/Choch', 'OI Divergence', 'Fair Value Gap'],
         minMatch: 2,
         contextFilter: (ctx) => {
             const last = ctx.candles[ctx.candles.length - 1];

@@ -11,10 +11,10 @@ const TP_MULTIPLIERS = [1.5, 2.0, 2.5, 3.5];
 const TP_WEIGHTS = [0.25, 0.25, 0.25, 0.25];
 
 export class RiskEngine {
-    static calculateLevels(ctx: StrategyContext, direction: SignalDirection): SignalLevels {
+    static calculateLevels(ctx: StrategyContext, direction: SignalDirection, suggestedEntry?: number): SignalLevels {
         const last = ctx.candles[ctx.candles.length - 1];
         const atr = ctx.indicators.atr;
-        const entry = last.close;
+        const entry = suggestedEntry || last.close;
         
         // ─── Step 1: Calculate initial SL from structure + ATR ───
         let sl: number;

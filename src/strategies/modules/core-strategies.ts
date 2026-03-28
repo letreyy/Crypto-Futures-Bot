@@ -2,90 +2,6 @@ import { StrategyContext, StrategySignalCandidate } from '../../core/types/bot-t
 import { SignalDirection } from '../../core/constants/enums.js';
 import { Strategy } from '../base/strategy.js';
 
-export class EMAPullbackStrategy implements Strategy {
-  name = 'EMA Pullback';
-  id = 'ema-pullback';
-
-  execute(ctx: StrategyContext): StrategySignalCandidate | null {
-    const { indicators, candles } = ctx;
-    const last = candles[candles.length - 1];
-    const prev = candles[candles.length - 2];
-
-    const is15mTrendUp = indicators.ema50 > indicators.ema200;
-    const is15mTrendDown = indicators.ema50 < indicators.ema200;
-
-    // LONG: Price pulls back to EMA20 and closes back above it with volume
-    if (is15mTrendUp && indicators.adx > 25 && prev.low <= indicators.ema20 && prev.low >= indicators.ema50 && last.close > indicators.ema20 && last.volume > indicators.volumeSma * 1.2) {
-      return {
-        strategyName: this.name,
-        direction: SignalDirection.LONG,
-        confidence: 80,
-        reasons: ['15m Trend Aligned', 'ADX > 25 (Strong trend)', 'EMA20 pullback', 'Volume confirmation'],
-        expireMinutes: 30
-      };
-    }
-
-    if (is15mTrendDown && indicators.adx > 25 && prev.high >= indicators.ema20 && prev.high <= indicators.ema50 && last.close < indicators.ema20 && last.volume > indicators.volumeSma * 1.2) {
-        return {
-          strategyName: this.name,
-          direction: SignalDirection.SHORT,
-          confidence: 80,
-          reasons: ['15m Trend Aligned', 'ADX > 25 (Strong dump)', 'EMA20 pullback', 'Volume confirmation'],
-          expireMinutes: 30
-        };
-      }
-
-    return null;
-  }
-}
-
-export class SqueezeBreakoutStrategy implements Strategy {
-    name = 'Squeeze Breakout';
-    id = 'squeeze-breakout';
-
-    execute(ctx: StrategyContext): StrategySignalCandidate | null {
-        const { indicators, candles } = ctx;
-        const last = candles[candles.length - 1];
-
-        const kcUpper = indicators.ema20 + 1.5 * indicators.atr;
-        const kcLower = indicators.ema20 - 1.5 * indicators.atr;
-
-        // TTM Squeeze: BB must be INSIDE Keltner Channel (true squeeze only, no bbWidth fallback)
-        const isSqueezed = indicators.bbUpper < kcUpper && indicators.bbLower > kcLower;
-        if (!isSqueezed) return null;
-
-        // Momentum confirmation: ADX must show developing trend (squeeze releasing into move)
-        if (indicators.adx < 20) return null;
-
-        if (last.close > indicators.bbUpper && last.volume > indicators.volumeSma * 2.0) {
-            return {
-                strategyName: this.name,
-                direction: SignalDirection.LONG,
-                confidence: 87,
-                reasons: [
-                    'TTM Squeeze: BB inside Keltner Channel',
-                    'Upper BB breakout with ADX momentum',
-                    `Volume expansion: ${(last.volume / indicators.volumeSma).toFixed(1)}x avg`
-                ],
-                expireMinutes: 40
-            };
-        }
-        if (last.close < indicators.bbLower && last.volume > indicators.volumeSma * 2.0) {
-            return {
-                strategyName: this.name,
-                direction: SignalDirection.SHORT,
-                confidence: 87,
-                reasons: [
-                    'TTM Squeeze: BB inside Keltner Channel',
-                    'Lower BB breakdown with ADX momentum',
-                    `Volume expansion: ${(last.volume / indicators.volumeSma).toFixed(1)}x avg`
-                ],
-                expireMinutes: 40
-            };
-        }
-        return null;
-    }
-}
 
 export class VWAPReversionStrategy implements Strategy {
     name = 'VWAP Reversion';
@@ -161,22 +77,34 @@ export class LiquiditySweepStrategy implements Strategy {
         // Volume must be higher than average to validate the sweep and reclaim
         if (last.volume <= indicators.volumeSma * 1.2) return null;
 
-        if (liquidity.sweptLow && liquidity.reclaimedLevel) {
+        if (liquidity.sweptLow && liquidity.reclaimedLevel && liquidity.localRangeLow) {
             return {
                 strategyName: this.name,
                 direction: SignalDirection.LONG,
+                orderType: 'LIMIT',
+                suggestedEntry: liquidity.localRangeLow, // Retest of the swept level
                 confidence: 90,
-                reasons: ['Swing low sweep', 'Quick reclaim with Volume', 'High probability stop hunt'],
-                expireMinutes: 30
+                reasons: [
+                    'Swing low sweep with volume', 
+                    'Range reclaimed → expecting retest of the low',
+                    `Limit set at original range low: ${liquidity.localRangeLow.toFixed(4)}`
+                ],
+                expireMinutes: 90 // 1.5 hours to retest
             };
         }
-        if (liquidity.sweptHigh && liquidity.reclaimedLevel) {
+        if (liquidity.sweptHigh && liquidity.reclaimedLevel && liquidity.localRangeHigh) {
             return {
                 strategyName: this.name,
                 direction: SignalDirection.SHORT,
+                orderType: 'LIMIT',
+                suggestedEntry: liquidity.localRangeHigh, // Retest of the swept level
                 confidence: 90,
-                reasons: ['Swing high sweep', 'Quick reclaim with Volume', 'High probability stop hunt'],
-                expireMinutes: 30
+                reasons: [
+                    'Swing high sweep with volume', 
+                    'Range reclaimed → expecting retest of the high',
+                    `Limit set at original range high: ${liquidity.localRangeHigh.toFixed(4)}`
+                ],
+                expireMinutes: 90 // 1.5 hours to retest
             };
         }
         return null;

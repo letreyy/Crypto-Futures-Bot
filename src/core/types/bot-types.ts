@@ -80,6 +80,8 @@ export interface StrategyContext {
 export interface StrategySignalCandidate {
   strategyName: string;
   direction: SignalDirection;
+  orderType?: 'MARKET' | 'LIMIT';
+  suggestedEntry?: number;
   confidence: number; // 0..100
   reasons: string[];
   expireMinutes: number;

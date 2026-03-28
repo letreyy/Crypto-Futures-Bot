@@ -16,18 +16,18 @@ function calculateStdDev(values: number[], mean: number): number {
 }
 
 export class VwapBandsStrategy implements Strategy {
-    name = 'VWAP Bands';
-    id = 'vwap-bands';
+    name = 'VWAP Extremes';
+    id = 'vwap-extremes';
 
     execute(ctx: StrategyContext): StrategySignalCandidate | null {
         const { candles, indicators } = ctx;
-        if (candles.length < 50) return null;
+        if (candles.length < 100) return null;
 
         const last = candles[candles.length - 1];
         const vwap = indicators.vwap;
 
         // Calculate standard deviation of close prices from VWAP over last 100 candles
-        const lookback = Math.min(100, candles.length);
+        const lookback = 100;
         const recentCloses = candles.slice(-lookback).map(c => c.close);
         const stdDev = calculateStdDev(recentCloses, vwap);
 
@@ -35,41 +35,47 @@ export class VwapBandsStrategy implements Strategy {
 
         const band2Upper = vwap + 2 * stdDev;
         const band2Lower = vwap - 2 * stdDev;
+        
+        const band3Upper = vwap + 3 * stdDev;
+        const band3Lower = vwap - 3 * stdDev;
 
-        const deviation = (last.close - vwap) / stdDev;
-
-        // LONG: price at or below -2σ + bullish candle
-        if (last.close <= band2Lower && last.close > last.open) {
+        // We want to catch the knife AT the 3rd deviation when price breaks the 2nd deviation.
+        // If price is currently outside the 2nd deviation, set a limit order at the 3rd deviation.
+        
+        // LONG: price crashed below -2σ -> place limit at -3σ
+        if (last.close <= band2Lower && last.close > band3Lower) {
             if (indicators.rsi < 35) {
                 return {
                     strategyName: this.name,
                     direction: SignalDirection.LONG,
-                    confidence: 76,
+                    orderType: 'LIMIT',
+                    suggestedEntry: band3Lower,
+                    confidence: 85,
                     reasons: [
-                        `Price at VWAP -2σ (${deviation.toFixed(2)}σ deviation)`,
-                        `VWAP: ${vwap.toFixed(4)} | Band: ${band2Lower.toFixed(4)}`,
-                        'Extreme oversold → mean reversion long',
-                        'Bullish candle confirmation'
+                        `Price crashed below VWAP -2σ`,
+                        `Limit set at -3σ extreme: ${band3Lower.toFixed(4)}`,
+                        'Extreme oversold → mean reversion long expected'
                     ],
-                    expireMinutes: 25
+                    expireMinutes: 120 // 2 hours to catch the knife
                 };
             }
         }
 
-        // SHORT: price at or above +2σ + bearish candle
-        if (last.close >= band2Upper && last.close < last.open) {
+        // SHORT: price pumped above +2σ -> place limit at +3σ
+        if (last.close >= band2Upper && last.close < band3Upper) {
             if (indicators.rsi > 65) {
                 return {
                     strategyName: this.name,
                     direction: SignalDirection.SHORT,
-                    confidence: 76,
+                    orderType: 'LIMIT',
+                    suggestedEntry: band3Upper,
+                    confidence: 85,
                     reasons: [
-                        `Price at VWAP +2σ (${deviation.toFixed(2)}σ deviation)`,
-                        `VWAP: ${vwap.toFixed(4)} | Band: ${band2Upper.toFixed(4)}`,
-                        'Extreme overbought → mean reversion short',
-                        'Bearish candle confirmation'
+                        `Price pumped above VWAP +2σ`,
+                        `Limit set at +3σ extreme: ${band3Upper.toFixed(4)}`,
+                        'Extreme overbought → mean reversion short expected'
                     ],
-                    expireMinutes: 25
+                    expireMinutes: 120 // 2 hours to catch the top
                 };
             }
         }

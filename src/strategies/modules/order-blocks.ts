@@ -1,0 +1,106 @@
+import { StrategyContext, StrategySignalCandidate } from '../../core/types/bot-types.js';
+import { SignalDirection } from '../../core/constants/enums.js';
+import { Strategy } from '../base/strategy.js';
+
+export class OrderBlocksStrategy implements Strategy {
+    name = 'Order Block Retest';
+    id = 'order-blocks';
+
+    execute(ctx: StrategyContext): StrategySignalCandidate | null {
+        const { candles, indicators } = ctx;
+        if (candles.length < 50) return null;
+
+        // We look for a recent impulsive move (within last 15 candles)
+        // that created an unmitigated Order Block.
+        const LOOKBACK = 15;
+        
+        for (let i = candles.length - 1; i >= candles.length - LOOKBACK; i--) {
+            const current = candles[i];
+            const prev1 = candles[i - 1];
+            const prev2 = candles[i - 2];
+            if (!prev1 || !prev2) continue;
+
+            // ─── Bullish Order Block ───
+            // 2 consecutive strong bullish candles (impulse)
+            const isBullImpulse = 
+                current.close > current.open &&
+                prev1.close > prev1.open &&
+                (current.close - prev1.open) > (indicators.atr * 1.5); // large move
+
+            if (isBullImpulse && prev2.close < prev2.open) {
+                // prev2 is the bearish candle before the impulse (The Order Block)
+                const obHigh = prev2.high;
+
+                // Ensure it's unmitigated (no candle after the impulse has touched obHigh)
+                let unmitigated = true;
+                for (let j = i + 1; j < candles.length; j++) {
+                    if (candles[j].low <= obHigh) {
+                        unmitigated = false;
+                        break;
+                    }
+                }
+
+                if (unmitigated) {
+                    // Check if current price is approaching the OB (within 2% but not yet touched)
+                    const lastPrice = candles[candles.length - 1].close;
+                    if (lastPrice > obHigh && lastPrice < obHigh * 1.02) {
+                        return {
+                            strategyName: this.name,
+                            direction: SignalDirection.LONG,
+                            orderType: 'LIMIT',
+                            suggestedEntry: obHigh, // Limit order at the top of the OB
+                            confidence: 85,
+                            reasons: [
+                                `Unmitigated Bullish Order Block found at ${obHigh.toFixed(4)}`,
+                                'Price is approaching the OB zone for a retest',
+                                'SMC: Liquidity grab & continuation setup'
+                            ],
+                            expireMinutes: 60 * 12 // 12 hours to hit the limit
+                        };
+                    }
+                }
+            }
+
+            // ─── Bearish Order Block ───
+            // 2 consecutive strong bearish candles (downward impulse)
+            const isBearImpulse = 
+                current.close < current.open &&
+                prev1.close < prev1.open &&
+                (prev1.open - current.close) > (indicators.atr * 1.5);
+
+            if (isBearImpulse && prev2.close > prev2.open) {
+                // prev2 is the bullish candle before the dump
+                const obLow = prev2.low;
+
+                let unmitigated = true;
+                for (let j = i + 1; j < candles.length; j++) {
+                    if (candles[j].high >= obLow) {
+                        unmitigated = false;
+                        break;
+                    }
+                }
+
+                if (unmitigated) {
+                    const lastPrice = candles[candles.length - 1].close;
+                    if (lastPrice < obLow && lastPrice > obLow * 0.98) {
+                        return {
+                            strategyName: this.name,
+                            direction: SignalDirection.SHORT,
+                            orderType: 'LIMIT',
+                            suggestedEntry: obLow, // Limit order at the bottom of the OB
+                            confidence: 85,
+                            reasons: [
+                                `Unmitigated Bearish Order Block found at ${obLow.toFixed(4)}`,
+                                'Price is approaching the OB zone for a retest',
+                                'SMC: Distribution & continuation setup'
+                            ],
+                            expireMinutes: 60 * 12 // 12 hours
+                        };
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+}

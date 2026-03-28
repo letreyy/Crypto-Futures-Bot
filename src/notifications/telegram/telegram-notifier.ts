@@ -128,7 +128,7 @@ export class TelegramNotifier {
 ⭐ <b>Score:</b> ${s.score}/100 (${s.confidenceLabel})
 📈 <b>Regime:</b> ${s.regime.type} (${s.regime.description})${contextStats}
 
-📍 <b>Entry:</b> <code>${s.levels.entry.toFixed(4)}</code>
+📍 <b>${s.orderType || 'MARKET'} Entry:</b> <code>${s.levels.entry.toFixed(4)}</code>
 🛑 <b>Stop Loss:</b> <code>${s.levels.sl.toFixed(4)}</code> (-${s.levels.riskPercent.toFixed(2)}%)
 ✅ <b>TP1:</b> <code>${s.levels.tp[0].toFixed(4)}</code> (+${(s.levels.riskPercent * 1.5).toFixed(2)}%)
 ✅ <b>TP2:</b> <code>${s.levels.tp[1].toFixed(4)}</code> (+${(s.levels.riskPercent * 2.0).toFixed(2)}%)

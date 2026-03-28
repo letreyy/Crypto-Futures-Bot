@@ -20,6 +20,9 @@ interface PaperTrade {
     timestamp: number;
     strategyName: string;
     history: string[];       // Step-by-step trade log for notifications
+    status: 'PENDING' | 'ACTIVE'; // Pending for limit orders, active once filled
+    expireAt: number;        // Timestamp (ms) when a pending order should be cancelled
+    orderType: 'MARKET' | 'LIMIT';
 }
 
 interface LeverageConfig {
@@ -234,6 +237,21 @@ ${list}
 
             const isLong = trade.direction === SignalDirection.LONG;
 
+            // ─── PENDING LIMIT ORDERS ───
+            if (trade.status === 'PENDING') {
+                const triggered = isLong ? lastCandle.low <= trade.entryPrice : lastCandle.high >= trade.entryPrice;
+                if (triggered) {
+                    trade.status = 'ACTIVE';
+                    trade.history.push(`Limit Filled at ${trade.entryPrice.toFixed(4)}`);
+                    logger.info(`[LIMIT FILLED] ${trade.symbol} ${trade.direction} at ${trade.entryPrice.toFixed(4)}`);
+                } else if (Date.now() > trade.expireAt) {
+                    logger.info(`[LIMIT EXPIRED] ${trade.symbol} ${trade.direction} at ${trade.entryPrice.toFixed(4)}`);
+                    return false; // Remove pending trade
+                } else {
+                    return true; // Still pending, keep waiting
+                }
+            }
+
             const isEntryCandle = trade.timestamp === lastCandle.timestamp;
 
             // ─── Check Stop Loss first (closes entire remaining position) ───
@@ -337,21 +355,29 @@ ${list}
      */
     async processSignal(signal: FinalSignal) {
         if (!this.isLive) {
-            logger.info(`[PAPER TRADE] Opening ${signal.direction} on ${signal.symbol} at ${signal.levels.entry.toFixed(4)} | Leverage: x${signal.leverageSuggestion} | TPs: ${signal.levels.tp.map(t => t.toFixed(4)).join(', ')}`);
+            const status = signal.orderType === 'LIMIT' ? 'PENDING' : 'ACTIVE';
+            const logEntryMsg = status === 'PENDING' 
+                ? `Limit set at ${signal.levels.entry.toFixed(4)}` 
+                : `Market entry at ${signal.levels.entry.toFixed(4)}`;
+
+            logger.info(`[PAPER TRADE] Opening ${signal.direction} on ${signal.symbol} at ${signal.levels.entry.toFixed(4)} | Type: ${signal.orderType || 'MARKET'} | Leverage: x${signal.leverageSuggestion} | TPs: ${signal.levels.tp.map(t => t.toFixed(4)).join(', ')}`);
             this.activeTrades.push({
                 id: `${signal.symbol}-${signal.timestamp}`,
                 symbol: signal.symbol,
                 direction: signal.direction,
                 entryPrice: signal.levels.entry,
                 sl: signal.levels.sl,
-                tp: signal.levels.tp,        // All 4 TP levels
+                tp: signal.levels.tp,
                 tpHit: 0,
                 remainingPortion: 1.0,
                 leverage: signal.leverageSuggestion,
                 accumulatedPnl: 0,
                 timestamp: signal.timestamp,
                 strategyName: signal.strategyName,
-                history: [`Entry at ${signal.levels.entry.toFixed(4)}`]
+                history: [logEntryMsg],
+                status: status,
+                expireAt: signal.timestamp + (signal.expireMinutes * 60 * 1000),
+                orderType: signal.orderType || 'MARKET'
             });
             return;
         }
