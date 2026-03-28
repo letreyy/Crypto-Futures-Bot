@@ -23,6 +23,7 @@ interface PaperTrade {
     status: 'PENDING' | 'ACTIVE'; // Pending for limit orders, active once filled
     expireAt: number;        // Timestamp (ms) when a pending order should be cancelled
     orderType: 'MARKET' | 'LIMIT';
+    dcaCount: number;        // How many times this position has been averaged down (max 1 usually)
 }
 
 interface LeverageConfig {
@@ -74,14 +75,19 @@ export class TradeExecutor {
                 ? `x${this.leverageConfig.fixedValue} (fixed)`
                 : `x${this.leverageConfig.minValue}-${this.leverageConfig.maxValue} (dynamic)`;
 
+            const activePositions = this.activeTrades.filter(t => t.status === 'ACTIVE');
+            const pendingOrders = this.activeTrades.filter(t => t.status === 'PENDING');
+
             const msg = `📊 <b>Bot Statistics</b>
 🤖 <b>Status:</b> ${status}
-📂 <b>Active Trades:</b> ${this.activeTrades.length}
 💰 <b>Total PnL Today:</b> ${sign}${this.todaysPnlPercent.toFixed(2)}%
 📐 <b>Leverage:</b> ${levInfo}${stratMsg}
 
-<i>Active Symbols:</i>
-${this.activeTrades.map(t => `- ${t.symbol} ${t.direction} (${t.strategyName})`).join('\n') || '- None'}`;
+📍 <b>Active Positions:</b> ${activePositions.length}
+${activePositions.map(t => `- <b>${t.symbol}</b> ${t.direction} (Entry: ${t.entryPrice.toFixed(4)})`).join('\n') || '<i>None</i>'}
+
+⏳ <b>Pending Limit Orders:</b> ${pendingOrders.length}
+${pendingOrders.map(t => `- <b>${t.symbol}</b> ${t.direction} (Limit: ${t.entryPrice.toFixed(4)})`).join('\n') || '<i>None</i>'}`;
             telegramNotifier.sendTextMessage(msg);
         });
 
@@ -391,18 +397,58 @@ ${list}
     }
 
     /**
-     * Checks if a symbol already has an open paper trade
+     * Finds an open paper trade for a given symbol
      */
-    hasActiveTrade(symbol: string): boolean {
-        return this.activeTrades.some(t => t.symbol === symbol);
+    getActiveTrade(symbol: string): PaperTrade | undefined {
+        return this.activeTrades.find(t => t.symbol === symbol);
     }
 
     /**
      * Executes a trade based on a final signal
+     * If an active trade already exists, applies Smart DCA averaging if the setup qualifies.
      * @param signal The generated and filtered signal
      */
-    async processSignal(signal: FinalSignal) {
+    async processSignal(signal: FinalSignal, currentPrice?: number) {
         if (!this.isLive) {
+            const existingTrade = this.getActiveTrade(signal.symbol);
+
+            // ─── SMART DCA (AVERAGING) ───
+            if (existingTrade) {
+                // Determine if we are in enough drawdown to average down
+                const priceToCompare = currentPrice || signal.levels.entry;
+                const isLong = existingTrade.direction === SignalDirection.LONG;
+
+                // We only DCA in the same direction, and only if dcaCount is 0, AND only if status is ACTIVE (not stacking pending limits)
+                if (existingTrade.direction === signal.direction && existingTrade.dcaCount === 0 && existingTrade.status === 'ACTIVE') {
+                    const drawdownPct = isLong 
+                        ? (existingTrade.entryPrice - priceToCompare) / existingTrade.entryPrice * 100
+                        : (priceToCompare - existingTrade.entryPrice) / existingTrade.entryPrice * 100;
+
+                    if (drawdownPct >= 1.0) { // Require at least 1.0% actual price drop to DCA
+                        const oldEntry = existingTrade.entryPrice;
+                        // For a simple martingale (doubling position size), new average is exactly in the middle
+                        const newAverageEntry = (oldEntry + signal.levels.entry) / 2;
+                        
+                        existingTrade.entryPrice = newAverageEntry;
+                        existingTrade.sl = signal.levels.sl; // Update to the new safer SL
+                        existingTrade.tp = signal.levels.tp; // Reset TP grid to the new signal's TP
+                        existingTrade.tpHit = 0;             // Reset ladders
+                        existingTrade.remainingPortion = 1.0; // Restored to full size (2x abstractly)
+                        existingTrade.dcaCount++;
+
+                        const logMsg = `🔥 DCA Averaged: Old ${oldEntry.toFixed(4)} -> New Avg ${newAverageEntry.toFixed(4)} via ${signal.strategyName}`;
+                        existingTrade.history.push(logMsg);
+                        logger.info(`[PAPER DCA] ${signal.symbol} ${signal.direction} | ${logMsg}`);
+                        telegramNotifier.sendTextMessage(`🔥 <b>SMART DCA Triggered</b>\n\n<b>${signal.symbol}</b> ${signal.direction}\nAverage Entry dropped from <code>${oldEntry.toFixed(4)}</code> to <code>${newAverageEntry.toFixed(4)}</code>!\nNew SL: <code>${existingTrade.sl.toFixed(4)}</code>`);
+                        return;
+                    }
+                }
+                
+                // If it doesn't qualify for DCA, just ignore the duplicate signal
+                return;
+            }
+
+            // ─── NEW TRADE ───
             const status = signal.orderType === 'LIMIT' ? 'PENDING' : 'ACTIVE';
             const logEntryMsg = status === 'PENDING' 
                 ? `Limit set at ${signal.levels.entry.toFixed(4)}` 
@@ -425,7 +471,8 @@ ${list}
                 history: [logEntryMsg],
                 status: status,
                 expireAt: signal.timestamp + (signal.expireMinutes * 60 * 1000),
-                orderType: signal.orderType || 'MARKET'
+                orderType: signal.orderType || 'MARKET',
+                dcaCount: 0
             });
             return;
         }

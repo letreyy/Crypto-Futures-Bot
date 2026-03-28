@@ -95,8 +95,12 @@ export class ScanWorker {
 
                 await tradeExecutor.updatePaperTrades(ctx);
 
-                // If symbol still has an active trade after updating TP/SL, do not look for new signals
-                if (tradeExecutor.hasActiveTrade(symbol)) continue;
+                // If symbol has an active trade, only proceed if we can potentially apply Smart DCA
+                const activeTrade = tradeExecutor.getActiveTrade(symbol);
+                if (activeTrade) {
+                    // Skip scanning if the trade is pending limit, or already DCA'd
+                    if (activeTrade.status !== 'ACTIVE' || activeTrade.dcaCount > 0) continue;
+                }
 
                 // ─── GLOBAL FILTERS ───
                 if (!passesGlobalFilters(ctx)) continue;
@@ -158,9 +162,16 @@ export class ScanWorker {
                     symbolSignals.sort((a, b) => b.score - a.score);
                     const finalSignal = symbolSignals[0];
 
-                    await telegramNotifier.sendSignal(finalSignal, ctx);
-                    await tradeExecutor.processSignal(finalSignal);
-                    dedupStore.recordAlert(symbol, finalSignal.strategyName, finalSignal.direction);
+                    // Pass the current live price to calculate drawdown purely for DCA evaluation
+                    const currentPrice = candles[candles.length - 1].close;
+                    await tradeExecutor.processSignal(finalSignal, currentPrice);
+                    
+                    // Do not log to telegram or deduplicate if it's just a duplicate signal that got rejected
+                    // The tradeExecutor will handle telegram notifications for DCA success itself.
+                    if (!activeTrade) {
+                        await telegramNotifier.sendSignal(finalSignal, ctx);
+                        dedupStore.recordAlert(symbol, finalSignal.strategyName, finalSignal.direction);
+                    }
                 }
 
             } catch (err: any) {
