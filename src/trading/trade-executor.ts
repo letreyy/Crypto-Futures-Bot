@@ -38,6 +38,10 @@ type SlCooldownMap = Map<string, number>;
 
 const SL_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour cooldown after a stop-loss
 
+function getTimestamp(): string {
+    return `[${new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Moscow' })}]`;
+}
+
 export class TradeExecutor {
     private isLive: boolean = false;
     private activeTrades: PaperTrade[] = [];
@@ -296,7 +300,7 @@ ${list}
                 const triggered = isLong ? lastCandle.low <= trade.entryPrice : lastCandle.high >= trade.entryPrice;
                 if (triggered) {
                     trade.status = 'ACTIVE';
-                    trade.history.push(`Limit Filled at ${trade.entryPrice.toFixed(4)}`);
+                    trade.history.push(`${getTimestamp()} Limit Filled at ${trade.entryPrice.toFixed(4)}`);
                     logger.info(`[LIMIT FILLED] ${trade.symbol} ${trade.direction} at ${trade.entryPrice.toFixed(4)}`);
                 } else if (Date.now() > trade.expireAt) {
                     logger.info(`[LIMIT EXPIRED] ${trade.symbol} ${trade.direction} at ${trade.entryPrice.toFixed(4)}`);
@@ -325,7 +329,7 @@ ${list}
 
                 this.recordStrategyResult(trade.strategyName, totalPnl);
 
-                trade.history.push(`SL hit (${slPnl.toFixed(2)}%)`);
+                trade.history.push(`${getTimestamp()} SL hit (${slPnl.toFixed(2)}%)`);
 
                 const cooldownKey = `${trade.symbol}:${trade.strategyName}`;
                 this.slCooldown.set(cooldownKey, Date.now());
@@ -356,21 +360,22 @@ ${list}
                 trade.tpHit++;
                 this.todaysPnlPercent += tpPnl;
                 
-                trade.history.push(`TP${trade.tpHit} hit (+${tpPnl.toFixed(2)}%)`);
+                trade.history.push(`${getTimestamp()} TP${trade.tpHit} hit (+${tpPnl.toFixed(2)}%)`);
 
                 // Move trailing stop loss
                 if (trade.tpHit === 1) { // Hit TP1 -> move SL to Break-Even
                     trade.sl = trade.entryPrice;
-                    trade.history.push(`SL moved to BE (${trade.sl.toFixed(4)})`);
+                    trade.history.push(`${getTimestamp()} SL moved to BE (${trade.sl.toFixed(4)})`);
                 } else if (trade.tpHit === 2) { // Hit TP2 -> move SL to TP1
                     trade.sl = trade.tp[0];
-                    trade.history.push(`SL moved to TP1 (${trade.sl.toFixed(4)})`);
+                    trade.history.push(`${getTimestamp()} SL moved to TP1 (${trade.sl.toFixed(4)})`);
                 } else if (trade.tpHit === 3) { // Hit TP3 -> move SL to TP2
                     trade.sl = trade.tp[1];
-                    trade.history.push(`SL moved to TP2 (${trade.sl.toFixed(4)})`);
+                    trade.history.push(`${getTimestamp()} SL moved to TP2 (${trade.sl.toFixed(4)})`);
                 }
 
                 logger.info(`[TP${trade.tpHit} HIT] ${trade.symbol} ${trade.direction} | +${tpPnl.toFixed(2)}% (25%) | Remaining: ${(trade.remainingPortion * 100).toFixed(0)}%`);
+                telegramNotifier.sendPartialTp(trade.symbol, trade.direction, trade.tpHit, tpPnl, trade.remainingPortion, this.todaysPnlPercent);
             }
 
             // All 4 TPs hit — position fully closed
@@ -436,9 +441,9 @@ ${list}
                         existingTrade.remainingPortion = 1.0; // Restored to full size (2x abstractly)
                         existingTrade.dcaCount++;
 
-                        const logMsg = `🔥 DCA Averaged: Old ${oldEntry.toFixed(4)} -> New Avg ${newAverageEntry.toFixed(4)} via ${signal.strategyName}`;
+                        const logMsg = `${getTimestamp()} DCA Averaged: Old ${oldEntry.toFixed(4)} -> New Avg ${newAverageEntry.toFixed(4)} via ${signal.strategyName}`;
                         existingTrade.history.push(logMsg);
-                        logger.info(`[PAPER DCA] ${signal.symbol} ${signal.direction} | ${logMsg}`);
+                        logger.info(`[PAPER DCA] ${signal.symbol} ${signal.direction} | DCA Averaged: Old ${oldEntry.toFixed(4)} -> New Avg ${newAverageEntry.toFixed(4)}`);
                         telegramNotifier.sendTextMessage(`🔥 <b>SMART DCA Triggered</b>\n\n<b>${signal.symbol}</b> ${signal.direction}\nAverage Entry dropped from <code>${oldEntry.toFixed(4)}</code> to <code>${newAverageEntry.toFixed(4)}</code>!\nNew SL: <code>${existingTrade.sl.toFixed(4)}</code>`);
                         return;
                     }
@@ -451,8 +456,8 @@ ${list}
             // ─── NEW TRADE ───
             const status = signal.orderType === 'LIMIT' ? 'PENDING' : 'ACTIVE';
             const logEntryMsg = status === 'PENDING' 
-                ? `Limit set at ${signal.levels.entry.toFixed(4)}` 
-                : `Market entry at ${signal.levels.entry.toFixed(4)}`;
+                ? `${getTimestamp()} Limit set at ${signal.levels.entry.toFixed(4)}` 
+                : `${getTimestamp()} Market entry at ${signal.levels.entry.toFixed(4)}`;
 
             logger.info(`[PAPER TRADE] Opening ${signal.direction} on ${signal.symbol} at ${signal.levels.entry.toFixed(4)} | Type: ${signal.orderType || 'MARKET'} | Leverage: x${signal.leverageSuggestion} | TPs: ${signal.levels.tp.map(t => t.toFixed(4)).join(', ')}`);
             this.activeTrades.push({

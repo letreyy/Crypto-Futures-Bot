@@ -60,6 +60,19 @@ export class TelegramNotifier {
         }
     }
 
+    async sendPartialTp(symbol: string, direction: string, tpHit: number, tpPnl: number, remaining: number, totalToday: number): Promise<void> {
+        if (!this.bot || !config.telegram.chatId) return;
+
+        const totalSign = totalToday > 0 ? '+' : '';
+        const message = `🔔 <b>Partial TP${tpHit} Hit!</b> | ${symbol} ${direction}\n\n✅ <b>Locked PnL:</b> +${tpPnl.toFixed(2)}%\n⏳ <b>Remaining:</b> ${(remaining * 100).toFixed(0)}%\n\n📊 <b>Total Today:</b> ${totalSign}${totalToday.toFixed(2)}%`;
+        
+        try {
+            await this.bot.sendMessage(config.telegram.chatId, message, { parse_mode: 'HTML', reply_markup: MAIN_KEYBOARD });
+        } catch (err: any) {
+            logger.error('Failed to send TP notification', { error: err.message });
+        }
+    }
+
     async sendTradeResult(symbol: string, direction: string, pnlPercent: number, totalPnlToday: number, history: string[] = []): Promise<void> {
         if (!this.bot || !config.telegram.chatId) return;
 
