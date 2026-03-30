@@ -19,7 +19,8 @@ export const config = {
     universeRefreshMinutes: parseInt(process.env.UNIVERSE_REFRESH_MINUTES || '60'),
     topN: parseInt(process.env.TOP_N_SYMBOLS || '50'),
     minSignalScore: parseInt(process.env.MIN_SIGNAL_SCORE || '80'),
-    minProfitLeveraged: parseFloat(process.env.MIN_PROFIT_LEVERAGED || '15.0'), // Filter out small targets
+    minProfitLeveraged: parseFloat(process.env.MIN_PROFIT_LEVERAGED || '15.0'), 
+    targetRiskPercent: parseFloat(process.env.TARGET_RISK_PERCENT || '1.0'),
     klinesLimit: 600
   },
   indicators: {

@@ -1,4 +1,5 @@
 import { FinalSignal, StrategyContext } from '../core/types/bot-types.js';
+import { config } from '../config/index.js';
 import { logger } from '../core/utils/logger.js';
 import { SignalDirection } from '../core/constants/enums.js';
 import { telegramNotifier } from '../notifications/telegram/telegram-notifier.js';
@@ -49,7 +50,7 @@ export class TradeExecutor {
     private strategyStats: Record<string, { win: number, loss: number, pnl: number }> = {};
     private disabledStrategies: Set<string> = new Set();
     private slCooldown: SlCooldownMap = new Map();
-    private targetRiskPercent: number = 1.0; // By default risk 1.0% of balance
+    private targetRiskPercent: number = config.bot.targetRiskPercent; // By default risk from config percentage of balance
     private leverageConfig: LeverageConfig = { mode: 'dynamic', fixedValue: 20, minValue: 1, maxValue: 50 }; // increased max for tiny SMC SLs
     private registeredStrategies: Strategy[] = [];
 
