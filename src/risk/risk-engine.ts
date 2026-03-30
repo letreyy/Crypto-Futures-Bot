@@ -5,8 +5,8 @@ const MAX_RISK_PERCENT = 2.0; // Maximum SL distance: 2% from entry
 
 // (TP multipliers removed in favor of dynamic structural levels)
 
-// Weights for each TP in the ladder (25% each for weighted average R:R)
-const TP_WEIGHTS = [0.25, 0.25, 0.25, 0.25];
+// Weights for each TP in the ladder (35%, 35%, 30%)
+const TP_WEIGHTS = [0.35, 0.35, 0.30];
 
 export class RiskEngine {
     static calculateLevels(ctx: StrategyContext, candidate: StrategySignalCandidate): SignalLevels {
@@ -46,22 +46,22 @@ export class RiskEngine {
                 : (ctx.liquidity.localRangeLow || entry - risk * 2.0);
         }
 
-        // Build the 4-step TP ladder around the primary target
+        // Build the 3-step TP ladder around the primary target
         let tp: number[] = [];
         if (direction === SignalDirection.LONG) {
-            // TP1: Scale out halfway to structural target (safeguard)
-            tp[0] = entry + (primaryTarget - entry) * 0.5;
-            // TP2: Exact primary structural target (e.g., liquidity sweep zone)
-            tp[1] = primaryTarget;
-            // TP3: Structural target broken + 1 ATR extension (trending push)
-            tp[2] = Math.max(primaryTarget + atr, entry + risk * 2.5); // Ensure it's not worse than 2.5R
-            // TP4: Ultimate Runner (Target + 2 ATR or baseline 3.5R if ATR is tight)
-            tp[3] = Math.max(primaryTarget + 2 * atr, entry + risk * 3.5);
+            // TP1: The primary structural target (liquidity pool, range edge, etc.)
+            tp[0] = primaryTarget;
+            // TP2: Structural target + 1.5 ATR extension (min 3.0R)
+            tp[1] = Math.max(primaryTarget + 1.5 * atr, entry + risk * 3.0);
+            // TP3: Ultimate Runner / Trend Extension (Target + 3.0 ATR or baseline 5.0R)
+            tp[2] = Math.max(primaryTarget + 3.0 * atr, entry + risk * 5.0);
         } else {
-            tp[0] = entry - (entry - primaryTarget) * 0.5;
-            tp[1] = primaryTarget;
-            tp[2] = Math.min(primaryTarget - atr, entry - risk * 2.5);
-            tp[3] = Math.min(primaryTarget - 2 * atr, entry - risk * 3.5);
+            // TP1: The primary structural target
+            tp[0] = primaryTarget;
+            // TP2: Target - 1.5 ATR extension (min 3.0R)
+            tp[1] = Math.min(primaryTarget - 1.5 * atr, entry - risk * 3.0);
+            // TP3: Ultimate Runner (Target - 3.0 ATR or baseline 5.0R)
+            tp[2] = Math.min(primaryTarget - 3.0 * atr, entry - risk * 5.0);
         }
 
         // Just map standard R:R values for telemetry purposes (Risk factor equivalent)

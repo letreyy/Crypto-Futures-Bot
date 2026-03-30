@@ -142,6 +142,17 @@ export class ScanWorker {
                             const levels = RiskEngine.calculateLevels(ctx, candidate);
                             const leverageSuggestion = tradeExecutor.calculateLeverage(levels.riskPercent);
                             
+                            // ─── Filter: REJECT signals with low leveraged potential ───
+                            // We check the final TP4 target with leverage.
+                            const tp4Price = levels.tp[3];
+                            const potentialProfitPct = (Math.abs(tp4Price - levels.entry) / levels.entry) * 100;
+                            const leveragedProfit = potentialProfitPct * leverageSuggestion;
+
+                            if (leveragedProfit < config.bot.minProfitLeveraged) {
+                                logger.info(`[REJECTED LOW PROFIT] ${symbol} ${candidate.strategyName}: Expected TP4 profit ${leveragedProfit.toFixed(2)}% < ${config.bot.minProfitLeveraged}%`);
+                                continue;
+                            }
+                            
                             symbolSignals.push({
                                 ...candidate,
                                 symbol,

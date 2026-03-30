@@ -339,8 +339,8 @@ ${list}
                 return false; // Remove trade
             }
 
-            // ─── Check TP levels (ladder: 25% at each level) ───
-            while (trade.tpHit < 4) {
+            // ─── Check TP levels (ladder: 3 steps: 35%, 35%, 30%) ───
+            while (trade.tpHit < 3) {
                 const nextTp = trade.tp[trade.tpHit];
                 const tpReached = isEntryCandle
                     ? (isLong ? lastCandle.close >= nextTp : lastCandle.close <= nextTp)
@@ -348,8 +348,9 @@ ${list}
 
                 if (!tpReached) break;
 
-                // Close 25% of the original position
-                const portion = 0.25;
+                // 35% for TP1 and TP2, index 0 and 1
+                // Final 30% for TP3, index 2
+                const portion = trade.tpHit < 2 ? 0.35 : 0.30;
                 const tpPnlRaw = isLong
                     ? (nextTp - trade.entryPrice) / trade.entryPrice
                     : (trade.entryPrice - nextTp) / trade.entryPrice;
@@ -369,17 +370,14 @@ ${list}
                 } else if (trade.tpHit === 2) { // Hit TP2 -> move SL to TP1
                     trade.sl = trade.tp[0];
                     trade.history.push(`${getTimestamp()} SL moved to TP1 (${trade.sl.toFixed(4)})`);
-                } else if (trade.tpHit === 3) { // Hit TP3 -> move SL to TP2
-                    trade.sl = trade.tp[1];
-                    trade.history.push(`${getTimestamp()} SL moved to TP2 (${trade.sl.toFixed(4)})`);
                 }
 
                 logger.info(`[TP${trade.tpHit} HIT] ${trade.symbol} ${trade.direction} | +${tpPnl.toFixed(2)}% (25%) | Remaining: ${(trade.remainingPortion * 100).toFixed(0)}%`);
                 telegramNotifier.sendPartialTp(trade.symbol, trade.direction, trade.tpHit, tpPnl, trade.remainingPortion, this.todaysPnlPercent);
             }
 
-            // All 4 TPs hit — position fully closed
-            if (trade.tpHit >= 4) {
+            // All 3 TPs hit — position fully closed
+            if (trade.tpHit >= 3) {
                 const totalPnl = trade.accumulatedPnl;
                 this.recordStrategyResult(trade.strategyName, totalPnl);
                 logger.info(`[PAPER CLOSED FULL TP] ${trade.symbol} ${trade.direction} | Total: ${totalPnl.toFixed(2)}%`);
