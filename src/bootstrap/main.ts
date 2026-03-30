@@ -3,6 +3,7 @@ import { scanWorker } from '../worker/scan-worker.js';
 
 import { tradeExecutor } from '../trading/trade-executor.js';
 import { strategyRegistry } from '../strategies/strategy-registry.js';
+import { telegramNotifier } from '../notifications/telegram/telegram-notifier.js';
 
 async function bootstrap() {
     process.on('SIGINT', shutdown);
@@ -19,13 +20,13 @@ async function bootstrap() {
     }
 }
 
-function shutdown() {
+async function shutdown() {
     logger.info('Shutting down...');
     scanWorker.stop();
-    setTimeout(() => {
-        logger.info('Exiting process.');
-        process.exit(0);
-    }, 1000);
+    await telegramNotifier.stop();
+    
+    logger.info('Exiting process.');
+    process.exit(0);
 }
 
 bootstrap();

@@ -19,6 +19,7 @@ const MAIN_KEYBOARD = {
 
 export class TelegramNotifier {
     private bot: TelegramBot | null = null;
+    private isPolling: boolean = false;
 
     constructor() {
         if (config.telegram.token) {
@@ -30,9 +31,18 @@ export class TelegramNotifier {
                 options.request = { proxy: config.telegram.proxy };
             }
             this.bot = new TelegramBot(config.telegram.token, options);
+            this.isPolling = true;
 
             // Clear the default side-menu, user requested to only use keyboard buttons
             this.bot.setMyCommands([]).catch(err => logger.error('Failed to clear Telegram bot commands', { error: err.message }));
+        }
+    }
+
+    async stop(): Promise<void> {
+        if (this.bot && this.isPolling) {
+            logger.info('Stopping Telegram bot polling...');
+            await this.bot.stopPolling();
+            this.isPolling = false;
         }
     }
 
@@ -129,7 +139,7 @@ export class TelegramNotifier {
 📈 <b>Regime:</b> ${s.regime.type} (${s.regime.description})${contextStats}
 
 📍 <b>${s.orderType || 'MARKET'} Entry:</b> <code>${s.levels.entry.toFixed(4)}</code>
-🛑 <b>Stop Loss:</b> <code>${s.levels.sl.toFixed(4)}</code> (-${s.levels.riskPercent.toFixed(2)}%)
+🛑 <b>Stop Loss:</b> <code>${s.levels.sl.toFixed(4)}</code> (-${(s.levels.riskPercent * s.leverageSuggestion).toFixed(1)}%)
 ✅ <b>TP1:</b> <code>${s.levels.tp[0].toFixed(4)}</code> (+${((Math.abs(s.levels.tp[0] - s.levels.entry) / s.levels.entry) * 100 * s.leverageSuggestion).toFixed(1)}%)
 ✅ <b>TP2:</b> <code>${s.levels.tp[1].toFixed(4)}</code> (+${((Math.abs(s.levels.tp[1] - s.levels.entry) / s.levels.entry) * 100 * s.leverageSuggestion).toFixed(1)}%)
 ✅ <b>TP3:</b> <code>${s.levels.tp[2].toFixed(4)}</code> (+${((Math.abs(s.levels.tp[2] - s.levels.entry) / s.levels.entry) * 100 * s.leverageSuggestion).toFixed(1)}%)
