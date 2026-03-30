@@ -372,8 +372,7 @@ ${list}
                     trade.history.push(`${getTimestamp()} SL moved to TP1 (${trade.sl.toFixed(4)})`);
                 }
 
-                logger.info(`[TP${trade.tpHit} HIT] ${trade.symbol} ${trade.direction} | +${tpPnl.toFixed(2)}% (25%) | Remaining: ${(trade.remainingPortion * 100).toFixed(0)}%`);
-                telegramNotifier.sendPartialTp(trade.symbol, trade.direction, trade.tpHit, tpPnl, trade.remainingPortion, this.todaysPnlPercent);
+                logger.info(`[TP${trade.tpHit} HIT] ${trade.symbol} ${trade.direction} | +${tpPnl.toFixed(2)}% (${(portion * 100).toFixed(0)}%) | Remaining: ${(trade.remainingPortion * 100).toFixed(0)}%`);
             }
 
             // All 3 TPs hit — position fully closed

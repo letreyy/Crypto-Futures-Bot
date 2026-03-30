@@ -60,19 +60,6 @@ export class TelegramNotifier {
         }
     }
 
-    async sendPartialTp(symbol: string, direction: string, tpHit: number, tpPnl: number, remaining: number, totalToday: number): Promise<void> {
-        if (!this.bot || !config.telegram.chatId) return;
-
-        const totalSign = totalToday > 0 ? '+' : '';
-        const message = `🔔 <b>Partial TP${tpHit} Hit!</b> | ${symbol} ${direction}\n\n✅ <b>Locked PnL:</b> +${tpPnl.toFixed(2)}%\n⏳ <b>Remaining:</b> ${(remaining * 100).toFixed(0)}%\n\n📊 <b>Total Today:</b> ${totalSign}${totalToday.toFixed(2)}%`;
-        
-        try {
-            await this.bot.sendMessage(config.telegram.chatId, message, { parse_mode: 'HTML', reply_markup: MAIN_KEYBOARD });
-        } catch (err: any) {
-            logger.error('Failed to send TP notification', { error: err.message });
-        }
-    }
-
     async sendTradeResult(symbol: string, direction: string, pnlPercent: number, totalPnlToday: number, history: string[] = []): Promise<void> {
         if (!this.bot || !config.telegram.chatId) return;
 
@@ -143,9 +130,9 @@ export class TelegramNotifier {
 
 📍 <b>${s.orderType || 'MARKET'} Entry:</b> <code>${s.levels.entry.toFixed(4)}</code>
 🛑 <b>Stop Loss:</b> <code>${s.levels.sl.toFixed(4)}</code> (-${s.levels.riskPercent.toFixed(2)}%)
-✅ <b>TP1:</b> <code>${s.levels.tp[0].toFixed(4)}</code> (Structural)
-✅ <b>TP2:</b> <code>${s.levels.tp[1].toFixed(4)}</code> (Extension)
-✅ <b>TP3:</b> <code>${s.levels.tp[2].toFixed(4)}</code> (Runner)
+✅ <b>TP1:</b> <code>${s.levels.tp[0].toFixed(4)}</code> (+${((Math.abs(s.levels.tp[0] - s.levels.entry) / s.levels.entry) * 100 * s.leverageSuggestion).toFixed(1)}%)
+✅ <b>TP2:</b> <code>${s.levels.tp[1].toFixed(4)}</code> (+${((Math.abs(s.levels.tp[1] - s.levels.entry) / s.levels.entry) * 100 * s.leverageSuggestion).toFixed(1)}%)
+✅ <b>TP3:</b> <code>${s.levels.tp[2].toFixed(4)}</code> (+${((Math.abs(s.levels.tp[2] - s.levels.entry) / s.levels.entry) * 100 * s.leverageSuggestion).toFixed(1)}%)
 
 📐 <b>Leverage:</b> x${s.leverageSuggestion}
 💰 <b>Risk/Reward:</b> 1:${s.levels.rrRatio}
