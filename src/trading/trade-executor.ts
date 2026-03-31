@@ -1,5 +1,6 @@
 import { FinalSignal, StrategyContext } from '../core/types/bot-types.js';
 import { config } from '../config/index.js';
+import * as ccxt from 'ccxt';
 import { logger } from '../core/utils/logger.js';
 import { SignalDirection } from '../core/constants/enums.js';
 import { telegramNotifier } from '../notifications/telegram/telegram-notifier.js';
@@ -42,9 +43,9 @@ const SL_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour cooldown after a stop-loss
 function getTimestamp(): string {
     return `[${new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Moscow' })}]`;
 }
-
 export class TradeExecutor {
-    private isLive: boolean = false;
+    private binance: ccxt.binance | null = null;
+    private isLive: boolean = config.binance.isLiveMode;
     private activeTrades: PaperTrade[] = [];
     private todaysPnlPercent: number = 0;
     private strategyStats: Record<string, { win: number, loss: number, pnl: number }> = {};
@@ -59,6 +60,27 @@ export class TradeExecutor {
      */
     async init(strategies: Strategy[]) {
         this.registeredStrategies = strategies;
+        
+        if (this.isLive) {
+            if (!config.binance.apiKey || !config.binance.apiSecret) {
+                logger.error('Binance API Key or Secret missing! Reverting to Paper Trading.');
+                this.isLive = false;
+            } else {
+                try {
+                    this.binance = new ccxt.binance({
+                        apiKey: config.binance.apiKey,
+                        secret: config.binance.apiSecret,
+                        options: { defaultType: 'future' }
+                    });
+                    logger.info('Live Trading enabled on Binance Futures.');
+                } catch (err: any) {
+                    logger.error('Failed to initialize CCXT Binance client', { error: err.message });
+                    this.isLive = false;
+                }
+            }
+        } else {
+            logger.info('Paper Trading mode active (simulated).');
+        }
         logger.info('Trade Executor initialized. Status: ' + (this.isLive ? 'LIVE' : 'PAPER TRADING'));
 
         // ─── 📊 Статистика ───
@@ -230,6 +252,35 @@ ${list}
             universeLoader.enableSymbol(sym);
             telegramNotifier.sendTextMessage(`🟢 <b>${sym}</b> разблокирована`);
             logger.info(`Symbol ${sym} unblocked via Telegram`);
+        });
+
+        // ─── 🔄 Переключение режима (Live/Paper) ───
+        telegramNotifier.onCommand(/(\/mode|🔄 Режим)(?:\s+(live|paper))?/, (_msg: any, match: any) => {
+            const requestedMode = match[2]; // match[1] is the command/button text, match[2] is the mode
+            if (!requestedMode) {
+                const current = this.isLive ? '🚀 LIVE' : '📝 PAPER';
+                telegramNotifier.sendTextMessage(`Current Mode: <b>${current}</b>\n\nUse <code>/mode live</code> or <code>/mode paper</code> to switch.`);
+                return;
+            }
+
+            if (requestedMode === 'live') {
+                if (!config.binance.apiKey || !config.binance.apiSecret) {
+                    telegramNotifier.sendTextMessage('❌ Cannot switch to LIVE: API keys missing in .env');
+                    return;
+                }
+                this.isLive = true;
+                this.init(this.registeredStrategies); // Re-init to ensure ccxt is ready
+                telegramNotifier.sendTextMessage('⚠️ <b>MODE CHANGED TO LIVE</b>\nBot will now execute real trades on Binance Futures!');
+            } else {
+                this.isLive = false;
+                telegramNotifier.sendTextMessage('📝 <b>MODE CHANGED TO PAPER</b>\nBot will now simulate trades.');
+            }
+        });
+
+        // ─── 🚨 PANIC BUTTON ───
+        telegramNotifier.onCommand(/(\/panic|🚨 ПАНИКА)/, async () => {
+            telegramNotifier.sendTextMessage('🚨 <b>PANIC INITIATED</b>: Closing all positions...');
+            await this.panicCloseAll();
         });
     }
 
@@ -412,96 +463,180 @@ ${list}
     /**
      * Executes a trade based on a final signal
      * If an active trade already exists, applies Smart DCA averaging if the setup qualifies.
-     * @param signal The generated and filtered signal
      */
     async processSignal(signal: FinalSignal, currentPrice?: number) {
-        if (!this.isLive) {
-            const existingTrade = this.getActiveTrade(signal.symbol);
+        if (this.isStrategyDisabled(signal.strategyName)) return;
+        if (this.isOnSlCooldown(signal.symbol, signal.strategyName)) return;
 
-            // ─── SMART DCA (AVERAGING) ───
-            if (existingTrade) {
-                // Determine if we are in enough drawdown to average down
-                const priceToCompare = currentPrice || signal.levels.entry;
-                const isLong = existingTrade.direction === SignalDirection.LONG;
-
-                // We only DCA in the same direction, and only if dcaCount is 0, AND only if status is ACTIVE (not stacking pending limits)
-                if (existingTrade.direction === signal.direction && existingTrade.dcaCount === 0 && existingTrade.status === 'ACTIVE') {
-                    const drawdownPct = isLong 
-                        ? (existingTrade.entryPrice - priceToCompare) / existingTrade.entryPrice * 100
-                        : (priceToCompare - existingTrade.entryPrice) / existingTrade.entryPrice * 100;
-
-                    if (drawdownPct >= 1.0) { // Require at least 1.0% actual price drop to DCA
-                        const oldEntry = existingTrade.entryPrice;
-                        // For a simple martingale (doubling position size), new average is exactly in the middle
-                        const newAverageEntry = (oldEntry + signal.levels.entry) / 2;
-                        
-                        existingTrade.entryPrice = newAverageEntry;
-                        existingTrade.sl = signal.levels.sl; // Update to the new safer SL
-                        existingTrade.tp = signal.levels.tp; // Reset TP grid to the new signal's TP
-                        existingTrade.tpHit = 0;             // Reset ladders
-                        existingTrade.remainingPortion = 1.0; // Restored to full size (2x abstractly)
-                        existingTrade.dcaCount++;
-
-                        const logMsg = `${getTimestamp()} DCA Averaged: Old ${oldEntry.toFixed(4)} -> New Avg ${newAverageEntry.toFixed(4)} via ${signal.strategyName}`;
-                        existingTrade.history.push(logMsg);
-                        logger.info(`[PAPER DCA] ${signal.symbol} ${signal.direction} | DCA Averaged: Old ${oldEntry.toFixed(4)} -> New Avg ${newAverageEntry.toFixed(4)}`);
-                        telegramNotifier.sendTextMessage(`🔥 <b>SMART DCA Triggered</b>\n\n<b>${signal.symbol}</b> ${signal.direction}\nAverage Entry dropped from <code>${oldEntry.toFixed(4)}</code> to <code>${newAverageEntry.toFixed(4)}</code>!\nNew SL: <code>${existingTrade.sl.toFixed(4)}</code>`);
-                        return;
-                    }
-                }
-                
-                // If it doesn't qualify for DCA, just ignore the duplicate signal
-                return;
-            }
-
-            // ─── NEW TRADE ───
-            const status = signal.orderType === 'LIMIT' ? 'PENDING' : 'ACTIVE';
-            const logEntryMsg = status === 'PENDING' 
-                ? `${getTimestamp()} Limit set at ${signal.levels.entry.toFixed(4)}` 
-                : `${getTimestamp()} Market entry at ${signal.levels.entry.toFixed(4)}`;
-
-            logger.info(`[PAPER TRADE] Opening ${signal.direction} on ${signal.symbol} at ${signal.levels.entry.toFixed(4)} | Type: ${signal.orderType || 'MARKET'} | Leverage: x${signal.leverageSuggestion} | TPs: ${signal.levels.tp.map(t => t.toFixed(4)).join(', ')}`);
-            this.activeTrades.push({
-                id: `${signal.symbol}-${signal.timestamp}`,
-                symbol: signal.symbol,
-                direction: signal.direction,
-                entryPrice: signal.levels.entry,
-                sl: signal.levels.sl,
-                tp: signal.levels.tp,
-                tpHit: 0,
-                remainingPortion: 1.0,
-                leverage: signal.leverageSuggestion,
-                accumulatedPnl: 0,
-                timestamp: signal.timestamp,
-                strategyName: signal.strategyName,
-                history: [logEntryMsg],
-                status: status,
-                expireAt: signal.timestamp + (signal.expireMinutes * 60 * 1000),
-                orderType: signal.orderType || 'MARKET',
-                dcaCount: 0
-            });
+        if (this.isLive) {
+            await this.executeLiveTrade(signal);
             return;
         }
 
+        // ─── PAPER TRADING LOGIC ───
+        const existingTrade = this.getActiveTrade(signal.symbol);
+
+        // ─── SMART DCA (AVERAGING) ───
+        if (existingTrade) {
+            const priceToCompare = currentPrice || signal.levels.entry;
+            const isLong = existingTrade.direction === SignalDirection.LONG;
+
+            if (existingTrade.direction === signal.direction && existingTrade.dcaCount === 0 && existingTrade.status === 'ACTIVE') {
+                const drawdownPct = isLong 
+                    ? (existingTrade.entryPrice - priceToCompare) / existingTrade.entryPrice * 100
+                    : (priceToCompare - existingTrade.entryPrice) / existingTrade.entryPrice * 100;
+
+                if (drawdownPct >= 1.0) {
+                    const oldEntry = existingTrade.entryPrice;
+                    const newAverageEntry = (oldEntry + signal.levels.entry) / 2;
+                    
+                    existingTrade.entryPrice = newAverageEntry;
+                    existingTrade.sl = signal.levels.sl;
+                    existingTrade.tp = signal.levels.tp;
+                    existingTrade.tpHit = 0;
+                    existingTrade.remainingPortion = 1.0;
+                    existingTrade.dcaCount++;
+
+                    const logMsg = `${getTimestamp()} DCA Averaged: Old ${oldEntry.toFixed(4)} -> New Avg ${newAverageEntry.toFixed(4)} via ${signal.strategyName}`;
+                    existingTrade.history.push(logMsg);
+                    logger.info(`[PAPER DCA] ${signal.symbol} ${signal.direction} | DCA Averaged: Old ${oldEntry.toFixed(4)} -> New Avg ${newAverageEntry.toFixed(4)}`);
+                    telegramNotifier.sendTextMessage(`🔥 <b>SMART DCA Triggered</b>\n\n<b>${signal.symbol}</b> ${signal.direction}\nAverage Entry dropped from <code>${oldEntry.toFixed(4)}</code> to <code>${newAverageEntry.toFixed(4)}</code>!\nNew SL: <code>${existingTrade.sl.toFixed(4)}</code>`);
+                    return;
+                }
+            }
+            return;
+        }
+
+        // ─── NEW PAPER TRADE ───
+        const status = signal.orderType === 'LIMIT' ? 'PENDING' : 'ACTIVE';
+        const logEntryMsg = status === 'PENDING' 
+            ? `${getTimestamp()} Limit set at ${signal.levels.entry.toFixed(4)}` 
+            : `${getTimestamp()} Market entry at ${signal.levels.entry.toFixed(4)}`;
+
+        logger.info(`[PAPER TRADE] Opening ${signal.direction} on ${signal.symbol} at ${signal.levels.entry.toFixed(4)} | Leverage: x${signal.leverageSuggestion}`);
+        
+        this.activeTrades.push({
+            id: `${signal.symbol}-${signal.timestamp}`,
+            symbol: signal.symbol,
+            direction: signal.direction,
+            entryPrice: signal.levels.entry,
+            sl: signal.levels.sl,
+            tp: signal.levels.tp,
+            tpHit: 0,
+            remainingPortion: 1.0,
+            leverage: signal.leverageSuggestion,
+            accumulatedPnl: 0,
+            timestamp: signal.timestamp,
+            strategyName: signal.strategyName,
+            history: [logEntryMsg],
+            status: status,
+            expireAt: signal.timestamp + (signal.expireMinutes * 60 * 1000),
+            orderType: signal.orderType || 'MARKET',
+            dcaCount: 0
+        });
+    }
+
+    private async executeLiveTrade(signal: FinalSignal) {
+        if (!this.binance) return;
+        const symbol = signal.symbol;
+        const direction = signal.direction === SignalDirection.LONG ? 'buy' : 'sell';
+        const side = signal.direction === SignalDirection.LONG ? 'LONG' : 'SHORT';
+        
         try {
-            await this.placeOrder(signal);
-            await this.placeTakeProfits(signal);
-            await this.placeStopLoss(signal);
-        } catch (error: any) {
-            logger.error(`Failed to execute trade for ${signal.symbol}`, { error: error.message });
+            await this.setExchangeSettings(symbol, signal.leverageSuggestion);
+            const quantity = await this.calculateLivePositionSize(signal);
+            
+            if (quantity <= 0) {
+                logger.error(`[LIVE] Skip ${symbol}: quantity calculated as 0 or insufficient balance`);
+                return;
+            }
+
+            logger.info(`[LIVE] Opening ${side} on ${symbol} | Qty: ${quantity} | Entry: ${signal.levels.entry}`);
+
+            const orderType = signal.orderType === 'LIMIT' ? 'limit' : 'market';
+            const params: any = {};
+            if (orderType === 'limit') params.price = signal.levels.entry;
+
+            const entryOrder = await this.binance.createOrder(symbol, orderType, direction, quantity, signal.levels.entry, params);
+            logger.info(`[LIVE] Entry order placed: ${entryOrder.id}`);
+
+            const tps = signal.levels.tp;
+            const tpPortions = [0.35, 0.35, 0.15, 0.15];
+            const closeDirection = direction === 'buy' ? 'sell' : 'buy';
+
+            for (let i = 0; i < tps.length; i++) {
+                const tpQty = quantity * tpPortions[i];
+                if (tpQty > 0) {
+                    await this.binance.createOrder(symbol, 'limit', closeDirection, tpQty, tps[i], { reduceOnly: true });
+                }
+            }
+
+            await this.binance.createOrder(symbol, 'STOP_MARKET', closeDirection, quantity, undefined, {
+                stopPrice: signal.levels.sl,
+                reduceOnly: true
+            });
+
+            telegramNotifier.sendTextMessage(`🚀 <b>LIVE TRADE OPENED</b>\n\n<b>${symbol}</b> ${side} x${signal.leverageSuggestion}\nQty: <code>${quantity.toFixed(4)}</code>\nEntry: <code>${signal.levels.entry}</code>\nSL: <code>${signal.levels.sl}</code>`);
+
+        } catch (err: any) {
+            logger.error(`[LIVE] Critical failure executing trade for ${symbol}`, { error: err.message });
+            telegramNotifier.sendTextMessage(`❌ <b>LIVE EXECUTION FAILED</b>\n\n${symbol}: ${err.message}`);
         }
     }
 
-    private async placeOrder(signal: FinalSignal) {
-        logger.info(`Placing Entry Order for ${signal.symbol}`);
+    private async setExchangeSettings(symbol: string, leverage: number) {
+        if (!this.binance) return;
+        try {
+            try {
+                await this.binance.setMarginMode('CROSSED', symbol);
+            } catch (e) {}
+            await this.binance.setLeverage(leverage, symbol);
+        } catch (err: any) {
+            logger.warn(`Failed to set exchange settings for ${symbol}`, { error: err.message });
+        }
     }
 
-    private async placeTakeProfits(signal: FinalSignal) {
-        logger.info(`Placing TP Orders for ${signal.symbol}`);
+    private async calculateLivePositionSize(signal: FinalSignal): Promise<number> {
+        if (!this.binance) return 0;
+        try {
+            const balance: any = await this.binance.fetchBalance();
+            const usdt = balance.free['USDT'] || 0;
+            if (usdt < 10) return 0;
+
+            const riskAmountUsdt = usdt * (this.targetRiskPercent / 100);
+            const slDist = Math.abs(signal.levels.entry - signal.levels.sl) / signal.levels.entry;
+            const positionSizeUsdt = riskAmountUsdt / (slDist + 0.00001);
+            let quantity = positionSizeUsdt / signal.levels.entry;
+
+            const maxAllowedQty = (usdt * signal.leverageSuggestion * 0.95) / signal.levels.entry;
+            return Math.min(quantity, maxAllowedQty);
+        } catch (err: any) {
+            logger.error('Failed to calculate position size', { error: err.message });
+            return 0;
+        }
     }
 
-    private async placeStopLoss(signal: FinalSignal) {
-        logger.info(`Placing SL Order for ${signal.symbol}`);
+    async panicCloseAll() {
+        if (!this.isLive || !this.binance) {
+            this.activeTrades = [];
+            telegramNotifier.sendTextMessage('🧹 Paper trades cleared.');
+            return;
+        }
+        try {
+            const positions = await this.binance.fetchPositions();
+            for (const pos of positions) {
+                const size = Number(pos.contracts || 0);
+                if (size !== 0 && pos.symbol) {
+                    const symbol = pos.symbol;
+                    const side: 'buy' | 'sell' = size > 0 ? 'sell' : 'buy';
+                    await this.binance.createOrder(symbol, 'market', side, Math.abs(size), undefined, { reduceOnly: true });
+                }
+            }
+            await this.binance.cancelAllOrders();
+            telegramNotifier.sendTextMessage('🚨 <b>PANIC CLOSED</b>: All positions closed and orders cancelled!');
+        } catch (err: any) {
+            logger.error('Panic close failed', { error: err.message });
+        }
     }
 }
 

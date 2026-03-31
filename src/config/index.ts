@@ -5,6 +5,7 @@ export const config = {
   binance: {
     apiKey: process.env.BINANCE_API_KEY || '',
     apiSecret: process.env.BINANCE_API_SECRET || '',
+    isLiveMode: process.env.IS_LIVE_MODE === 'true',
     baseUrl: process.env.BINANCE_BASE_URL || 'https://fapi.binance.com'
   },
   telegram: {
