@@ -44,8 +44,8 @@ function getTimestamp(): string {
     return `[${new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Moscow' })}]`;
 }
 export class TradeExecutor {
-    private binance: ccxt.binance | null = null;
-    private isLive: boolean = config.binance.isLiveMode;
+    private exchange: ccxt.Exchange | null = null;
+    private isLive: boolean = config.exchangeId === 'mexc' ? config.mexc.isLiveMode : config.binance.isLiveMode;
     private activeTrades: PaperTrade[] = [];
     private todaysPnlPercent: number = 0;
     private strategyStats: Record<string, { win: number, loss: number, pnl: number }> = {};
@@ -60,28 +60,37 @@ export class TradeExecutor {
      */
     async init(strategies: Strategy[]) {
         this.registeredStrategies = strategies;
-        
+        const exchangeId = config.exchangeId;
+        const exConfig = exchangeId === 'mexc' ? config.mexc : config.binance;
+
         if (this.isLive) {
-            if (!config.binance.apiKey || !config.binance.apiSecret) {
-                logger.error('Binance API Key or Secret missing! Reverting to Paper Trading.');
+            if (!exConfig.apiKey || !exConfig.apiSecret) {
+                logger.error(`${exchangeId.toUpperCase()} API Key or Secret missing! Reverting to Paper Trading.`);
                 this.isLive = false;
             } else {
                 try {
-                    this.binance = new ccxt.binance({
-                        apiKey: config.binance.apiKey,
-                        secret: config.binance.apiSecret,
-                        options: { defaultType: 'future' }
-                    });
-                    logger.info('Live Trading enabled on Binance Futures.');
+                    const options: any = {
+                        apiKey: exConfig.apiKey,
+                        secret: exConfig.apiSecret,
+                        options: { defaultType: 'swap' } // Essential for MEXC and Binance Futures
+                    };
+                    
+                    if (exchangeId === 'mexc') {
+                        this.exchange = new ccxt.mexc(options);
+                    } else {
+                        this.exchange = new ccxt.binance(options);
+                    }
+                    
+                    logger.info(`Live Trading enabled on ${exchangeId.toUpperCase()}.`);
                 } catch (err: any) {
-                    logger.error('Failed to initialize CCXT Binance client', { error: err.message });
+                    logger.error(`Failed to initialize CCXT ${exchangeId} client`, { error: err.message });
                     this.isLive = false;
                 }
             }
         } else {
             logger.info('Paper Trading mode active (simulated).');
         }
-        logger.info('Trade Executor initialized. Status: ' + (this.isLive ? 'LIVE' : 'PAPER TRADING'));
+        logger.info('Trade Executor initialized. Status: ' + (this.isLive ? 'LIVE' : 'PAPER TRADING') + ` (${exchangeId.toUpperCase()})`);
 
         // ─── 📊 Статистика ───
         telegramNotifier.onCommand(/(\/stats|📊 Статистика)/, () => {
@@ -264,13 +273,14 @@ ${list}
             }
 
             if (requestedMode === 'live') {
-                if (!config.binance.apiKey || !config.binance.apiSecret) {
-                    telegramNotifier.sendTextMessage('❌ Cannot switch to LIVE: API keys missing in .env');
+                const exConfig = config.exchangeId === 'mexc' ? config.mexc : config.binance;
+                if (!exConfig.apiKey || !exConfig.apiSecret) {
+                    telegramNotifier.sendTextMessage(`❌ Cannot switch to LIVE: API keys for ${config.exchangeId.toUpperCase()} missing in .env`);
                     return;
                 }
                 this.isLive = true;
-                this.init(this.registeredStrategies); // Re-init to ensure ccxt is ready
-                telegramNotifier.sendTextMessage('⚠️ <b>MODE CHANGED TO LIVE</b>\nBot will now execute real trades on Binance Futures!');
+                this.init(this.registeredStrategies); 
+                telegramNotifier.sendTextMessage(`⚠️ <b>MODE CHANGED TO LIVE</b>\nBot will now execute real trades on ${config.exchangeId.toUpperCase()}!`);
             } else {
                 this.isLive = false;
                 telegramNotifier.sendTextMessage('📝 <b>MODE CHANGED TO PAPER</b>\nBot will now simulate trades.');
@@ -537,8 +547,14 @@ ${list}
     }
 
     private async executeLiveTrade(signal: FinalSignal) {
-        if (!this.binance) return;
-        const symbol = signal.symbol;
+        if (!this.exchange) return;
+        
+        let symbol = signal.symbol;
+        // MEXC/Unified symbol handling: BTCUSDT -> BTC/USDT:USDT
+        if (config.exchangeId === 'mexc' && !symbol.includes('/')) {
+            symbol = `${symbol.replace('USDT', '')}/USDT:USDT`;
+        }
+
         const direction = signal.direction === SignalDirection.LONG ? 'buy' : 'sell';
         const side = signal.direction === SignalDirection.LONG ? 'LONG' : 'SHORT';
         
@@ -554,10 +570,13 @@ ${list}
             logger.info(`[LIVE] Opening ${side} on ${symbol} | Qty: ${quantity} | Entry: ${signal.levels.entry}`);
 
             const orderType = signal.orderType === 'LIMIT' ? 'limit' : 'market';
-            const params: any = {};
+            const params: any = {
+                // MEXC specifics
+                openType: 2 // 2 = Cross on MEXC
+            };
             if (orderType === 'limit') params.price = signal.levels.entry;
 
-            const entryOrder = await this.binance.createOrder(symbol, orderType, direction, quantity, signal.levels.entry, params);
+            const entryOrder = await this.exchange.createOrder(symbol, orderType, direction, quantity, signal.levels.entry, params);
             logger.info(`[LIVE] Entry order placed: ${entryOrder.id}`);
 
             const tps = signal.levels.tp;
@@ -567,16 +586,20 @@ ${list}
             for (let i = 0; i < tps.length; i++) {
                 const tpQty = quantity * tpPortions[i];
                 if (tpQty > 0) {
-                    await this.binance.createOrder(symbol, 'limit', closeDirection, tpQty, tps[i], { reduceOnly: true });
+                    await this.exchange.createOrder(symbol, 'limit', closeDirection, tpQty, tps[i], { 
+                        reduceOnly: true,
+                        openType: 2 
+                    });
                 }
             }
 
-            await this.binance.createOrder(symbol, 'STOP_MARKET', closeDirection, quantity, undefined, {
+            await this.exchange.createOrder(symbol, 'STOP_MARKET', closeDirection, quantity, undefined, {
                 stopPrice: signal.levels.sl,
-                reduceOnly: true
+                reduceOnly: true,
+                openType: 2
             });
 
-            telegramNotifier.sendTextMessage(`🚀 <b>LIVE TRADE OPENED</b>\n\n<b>${symbol}</b> ${side} x${signal.leverageSuggestion}\nQty: <code>${quantity.toFixed(4)}</code>\nEntry: <code>${signal.levels.entry}</code>\nSL: <code>${signal.levels.sl}</code>`);
+            telegramNotifier.sendTextMessage(`🚀 <b>LIVE TRADE OPENED [${config.exchangeId.toUpperCase()}]</b>\n\n<b>${symbol}</b> ${side} x${signal.leverageSuggestion}\nQty: <code>${quantity.toFixed(4)}</code>\nEntry: <code>${signal.levels.entry}</code>\nSL: <code>${signal.levels.sl}</code>`);
 
         } catch (err: any) {
             logger.error(`[LIVE] Critical failure executing trade for ${symbol}`, { error: err.message });
@@ -585,21 +608,26 @@ ${list}
     }
 
     private async setExchangeSettings(symbol: string, leverage: number) {
-        if (!this.binance) return;
+        if (!this.exchange) return;
         try {
-            try {
-                await this.binance.setMarginMode('CROSSED', symbol);
-            } catch (e) {}
-            await this.binance.setLeverage(leverage, symbol);
+            if (config.exchangeId === 'mexc') {
+                // MEXC sets margin mode via setLeverage params
+                await this.exchange.setLeverage(leverage, symbol, { openType: 2 }); // 2 = Cross
+            } else {
+                try {
+                    await this.exchange.setMarginMode('CROSSED', symbol);
+                } catch (e) {}
+                await this.exchange.setLeverage(leverage, symbol);
+            }
         } catch (err: any) {
             logger.warn(`Failed to set exchange settings for ${symbol}`, { error: err.message });
         }
     }
 
     private async calculateLivePositionSize(signal: FinalSignal): Promise<number> {
-        if (!this.binance) return 0;
+        if (!this.exchange) return 0;
         try {
-            const balance: any = await this.binance.fetchBalance();
+            const balance: any = await this.exchange.fetchBalance();
             const usdt = balance.free['USDT'] || 0;
             if (usdt < 10) return 0;
 
@@ -617,23 +645,26 @@ ${list}
     }
 
     async panicCloseAll() {
-        if (!this.isLive || !this.binance) {
+        if (!this.isLive || !this.exchange) {
             this.activeTrades = [];
             telegramNotifier.sendTextMessage('🧹 Paper trades cleared.');
             return;
         }
         try {
-            const positions = await this.binance.fetchPositions();
+            const positions = await this.exchange.fetchPositions();
             for (const pos of positions) {
                 const size = Number(pos.contracts || 0);
                 if (size !== 0 && pos.symbol) {
                     const symbol = pos.symbol;
                     const side: 'buy' | 'sell' = size > 0 ? 'sell' : 'buy';
-                    await this.binance.createOrder(symbol, 'market', side, Math.abs(size), undefined, { reduceOnly: true });
+                    await this.exchange.createOrder(symbol, 'market', side, Math.abs(size), undefined, { 
+                        reduceOnly: true,
+                        openType: 2 
+                    });
                 }
             }
-            await this.binance.cancelAllOrders();
-            telegramNotifier.sendTextMessage('🚨 <b>PANIC CLOSED</b>: All positions closed and orders cancelled!');
+            await this.exchange.cancelAllOrders();
+            telegramNotifier.sendTextMessage(`🚨 <b>PANIC CLOSED</b>: All positions closed and orders cancelled on ${config.exchangeId.toUpperCase()}!`);
         } catch (err: any) {
             logger.error('Panic close failed', { error: err.message });
         }

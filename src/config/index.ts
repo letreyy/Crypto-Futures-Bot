@@ -2,12 +2,18 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export const config = {
+  mexc: {
+    apiKey: process.env.MEXC_API_KEY || '',
+    apiSecret: process.env.MEXC_API_SECRET || '',
+    isLiveMode: process.env.IS_LIVE_MODE === 'true'
+  },
   binance: {
     apiKey: process.env.BINANCE_API_KEY || '',
     apiSecret: process.env.BINANCE_API_SECRET || '',
     isLiveMode: process.env.IS_LIVE_MODE === 'true',
     baseUrl: process.env.BINANCE_BASE_URL || 'https://fapi.binance.com'
   },
+  exchangeId: (process.env.EXCHANGE_ID || 'mexc') as 'binance' | 'mexc',
   telegram: {
     token: process.env.TELEGRAM_BOT_TOKEN || '',
     chatId: process.env.TELEGRAM_CHAT_ID || '',
