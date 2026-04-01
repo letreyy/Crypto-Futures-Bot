@@ -7,6 +7,7 @@ import { telegramNotifier } from '../notifications/telegram/telegram-notifier.js
 import { Strategy } from '../strategies/base/strategy.js';
 import { universeLoader } from '../market/universe/universe-loader.js';
 import { COMBO_DEFINITIONS } from '../strategies/combination-engine.js';
+import { statsService } from '../stats/stats-service.js';
 
 interface PaperTrade {
     id: string;
@@ -295,10 +296,11 @@ ${list}
     }
 
     /**
-     * Checks if a strategy is disabled
+     * Checks if a strategy is disabled (manually or by circuit breaker)
      */
     isStrategyDisabled(strategyName: string): boolean {
-        return this.disabledStrategies.has(strategyName);
+        if (this.disabledStrategies.has(strategyName)) return true;
+        return statsService.isPaused(strategyName);
     }
 
     /**
@@ -326,18 +328,10 @@ ${list}
         // e.g. targetRisk 1.0%, slDistance = 0.5%. Leverage = 1 / 0.5 = x2... no wait.
         // Position size * SL distance % = Target Risk % of Account
         // If we use 100% of our account * (1 / Leverage)...
-        // Actually, if we use 100% of account as collateral (which Binance allows via Isolated margined to maximum):
-        // Pnl% = PriceChange% * Leverage.
-        // We want Pnl% at StopLoss to be EXACTLY `targetRiskPercent`.
+        // Pnl% at StopLoss should be EXACTLY `targetRiskPercent`.
         // So: targetRiskPercent = slDistancePercent * Leverage
         // Leverage = targetRiskPercent / slDistancePercent
-        // e.g. 1.0% / 0.5% = x2. 
-        // Wait. If leverage is x2, and we use 100% deposit, price moves 0.5%, PnL is 1.0%.
-        // But if price moves 2.0% (SL = 2%), Leverage = 1.0 / 2.0 = x0.5 (impossible).
-        // This is why users specify "Margin Size". 
-        // Currently, our paper trader simulates risking a fixed "portion".
-        // Let's just adjust the abstract leverage factor so our reported riskPercent equals targetRiskPercent.
-        const targetLeverage = (this.targetRiskPercent / (slDistancePercent + 0.0001)) * 10; 
+        const targetLeverage = (this.targetRiskPercent / (slDistancePercent + 0.0001)); 
         
         return Math.max(this.leverageConfig.minValue, Math.min(this.leverageConfig.maxValue, Math.round(targetLeverage)));
     }
@@ -461,6 +455,9 @@ ${list}
         if (totalPnl > 0) stats.win++;
         else stats.loss++;
         stats.pnl += totalPnl;
+
+        // Feed to Circuit Breaker
+        statsService.recordTrade(strategyName, totalPnl);
     }
 
     /**

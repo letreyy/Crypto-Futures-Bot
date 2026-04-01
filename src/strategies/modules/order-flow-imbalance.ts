@@ -18,31 +18,34 @@ export class OrderFlowImbalanceStrategy implements Strategy {
         const bodyRatio = bodySize / fullSize;
 
         // Buying imbalance / Absorption
-        // If price is near local lows, volume is massive, and it closes as a strong pinbar or bullish candle
-        if (last.close > last.open && bodyRatio > 0.6 && last.low <= (liquidity.localRangeLow || 0)) {
-            return {
-                strategyName: this.name,
-                direction: SignalDirection.LONG,
-                suggestedTarget: liquidity.localRangeHigh || undefined,
-                suggestedSl: last.low - (indicators.atr * 0.2), // Below the imbalance candle
-                confidence: 85,
-                reasons: ['Strong Buying Imbalance at Swing Low', 'High relative volume', 'Bullish Delta approximation'],
-                expireMinutes: 20
-            };
+        // Support only if we have the relevant boundary
+        if (last.close > last.open && bodyRatio > 0.6) {
+            if (liquidity.localRangeLow && last.low <= liquidity.localRangeLow) {
+                return {
+                    strategyName: this.name,
+                    direction: SignalDirection.LONG,
+                    suggestedTarget: liquidity.localRangeHigh || undefined,
+                    suggestedSl: last.low - (indicators.atr * 0.2), // Below the imbalance candle
+                    confidence: 85,
+                    reasons: ['Strong Buying Imbalance at Swing Low', 'High relative volume', 'Bullish Delta approximation'],
+                    expireMinutes: 20
+                };
+            }
         }
 
         // Selling imbalance / Absorption
-        // If price is near local highs, volume is massive, and it closes as a strong bearish pinbar or candle
-        if (last.close < last.open && bodyRatio > 0.6 && last.high >= (liquidity.localRangeHigh || Number.MAX_SAFE_INTEGER)) {
-            return {
-                strategyName: this.name,
-                direction: SignalDirection.SHORT,
-                suggestedTarget: liquidity.localRangeLow || undefined,
-                suggestedSl: last.high + (indicators.atr * 0.2), // Above the imbalance candle
-                confidence: 85,
-                reasons: ['Strong Selling Imbalance at Swing High', 'High relative volume', 'Bearish Delta approximation'],
-                expireMinutes: 20
-            };
+        if (last.close < last.open && bodyRatio > 0.6) {
+            if (liquidity.localRangeHigh && last.high >= liquidity.localRangeHigh) {
+                return {
+                    strategyName: this.name,
+                    direction: SignalDirection.SHORT,
+                    suggestedTarget: liquidity.localRangeLow || undefined,
+                    suggestedSl: last.high + (indicators.atr * 0.2), // Above the imbalance candle
+                    confidence: 85,
+                    reasons: ['Strong Selling Imbalance at Swing High', 'High relative volume', 'Bearish Delta approximation'],
+                    expireMinutes: 20
+                };
+            }
         }
 
         return null;

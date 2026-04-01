@@ -10,6 +10,8 @@ import { OrderBlocksStrategy } from './modules/order-blocks.js';
 import { DeltaDivergenceStrategy } from './modules/delta-divergence.js';
 import { AbsorptionStrategy } from './modules/absorption.js';
 import { VwapBandsStrategy } from './modules/vwap-bands.js';
+import { TrendingPullback1hStrategy } from './modules/trending-pullback-1h.js';
+import { VolatilitySqueezeStrategy } from './modules/volatility-squeeze.js';
 import { Strategy } from './base/strategy.js';
 
 export const strategyRegistry: Strategy[] = [
@@ -19,13 +21,8 @@ export const strategyRegistry: Strategy[] = [
     // ─── Extra (active) ───
     new RangeBounceStrategy(),
     new BreakoutFailureStrategy(),
-    // ─── Disabled (execute returns null, kept for backward compat) ───
-    new PumpDetectorStrategy(),
-    new MicroPullbackStrategy(),
-    new DumpBounceStrategy(),
     // ─── Specialized ───
     new FundingReversalStrategy(),
-    new OIDivergenceStrategy(),
     new EmaRibbonScalpStrategy(),
     new OrderFlowImbalanceStrategy(),
     // ─── SMC ───
@@ -35,6 +32,14 @@ export const strategyRegistry: Strategy[] = [
     // ─── New ───
     new DeltaDivergenceStrategy(),
     new AbsorptionStrategy(),
+    new TrendingPullback1hStrategy(),
+    new VolatilitySqueezeStrategy(),
+
+    // ─── Disabled (execute returns null or temporarily removed) ───
+    new PumpDetectorStrategy(),
+    new MicroPullbackStrategy(),
+    new DumpBounceStrategy(),
+    new OIDivergenceStrategy(),
     new VwapBandsStrategy(),
 ];
 

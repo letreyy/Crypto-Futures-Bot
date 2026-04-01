@@ -42,23 +42,26 @@ export class RangeBounceStrategy implements Strategy {
         const atrPct = (indicators.atr / last.close) * 100;
         if (atrPct > 0.8) return null;
 
-        if (last.low <= (liquidity.localRangeLow || 0) && indicators.rsi < 35) {
+        // Support only if we have both boundaries
+        if (!liquidity.localRangeLow || !liquidity.localRangeHigh) return null;
+
+        if (last.low <= liquidity.localRangeLow && indicators.rsi < 35) {
             return {
                 strategyName: this.name,
                 direction: SignalDirection.LONG,
-                suggestedTarget: liquidity.localRangeHigh || undefined,
-                suggestedSl: (liquidity.localRangeLow || last.low) - (indicators.atr * 0.2),
+                suggestedTarget: liquidity.localRangeHigh,
+                suggestedSl: liquidity.localRangeLow - (indicators.atr * 0.2),
                 confidence: 65,
                 reasons: ['Range floor bounce', 'Flat regime (ADX < 18)', 'RSI oversold', `ATR: ${atrPct.toFixed(2)}% (narrow)`],
                 expireMinutes: 30
             };
         }
-        if (last.high >= (liquidity.localRangeHigh || 0) && indicators.rsi > 65) {
+        if (last.high >= liquidity.localRangeHigh && indicators.rsi > 65) {
             return {
                 strategyName: this.name,
                 direction: SignalDirection.SHORT,
-                suggestedTarget: liquidity.localRangeLow || undefined,
-                suggestedSl: (liquidity.localRangeHigh || last.high) + (indicators.atr * 0.2),
+                suggestedTarget: liquidity.localRangeLow,
+                suggestedSl: liquidity.localRangeHigh + (indicators.atr * 0.2),
                 confidence: 65,
                 reasons: ['Range ceiling bounce', 'Flat regime (ADX < 18)', 'RSI overbought', `ATR: ${atrPct.toFixed(2)}% (narrow)`],
                 expireMinutes: 30
@@ -80,12 +83,15 @@ export class BreakoutFailureStrategy implements Strategy {
 
         // REQUIRED: volume must be >= 1.5x average to confirm the failed breakout is real
         if (last.volume < indicators.volumeSma * 1.5) return null;
+
+        // Support only if we have both boundaries
+        if (!liquidity.localRangeLow || !liquidity.localRangeHigh) return null;
         
-        if (last.high > (liquidity.localRangeHigh || Number.MAX_SAFE_INTEGER) && last.close < (liquidity.localRangeHigh || 0)) {
+        if (last.high > liquidity.localRangeHigh && last.close < liquidity.localRangeHigh) {
             return {
                 strategyName: this.name,
                 direction: SignalDirection.SHORT,
-                suggestedTarget: liquidity.localRangeLow || undefined,
+                suggestedTarget: liquidity.localRangeLow,
                 suggestedSl: last.high + (indicators.atr * 0.2), // Behind the bull trap wick
                 confidence: 80,
                 reasons: ['Failed bullish breakout', 'Return to range', 'Bull Trap + volume spike'],
@@ -93,11 +99,11 @@ export class BreakoutFailureStrategy implements Strategy {
             };
         }
 
-        if (last.low < (liquidity.localRangeLow || 0) && last.close > (liquidity.localRangeLow || Number.MAX_SAFE_INTEGER)) {
+        if (last.low < liquidity.localRangeLow && last.close > liquidity.localRangeLow) {
             return {
                 strategyName: this.name,
                 direction: SignalDirection.LONG,
-                suggestedTarget: liquidity.localRangeHigh || undefined,
+                suggestedTarget: liquidity.localRangeHigh,
                 suggestedSl: last.low - (indicators.atr * 0.2), // Behind the bear trap wick
                 confidence: 80,
                 reasons: ['Failed bearish breakdown', 'Return to range', 'Bear Trap + volume spike'],

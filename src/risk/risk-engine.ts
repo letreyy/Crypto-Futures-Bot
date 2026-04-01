@@ -1,9 +1,8 @@
 import { SignalDirection } from '../core/constants/enums.js';
 import { StrategyContext, SignalLevels, StrategySignalCandidate } from '../core/types/bot-types.js';
 
-const MAX_RISK_PERCENT = 2.0; // Maximum SL distance: 2% from entry
-
-// (TP multipliers removed in favor of dynamic structural levels)
+const MIN_RISK_PERCENT = 0.35; // Minimum SL distance: 0.35% (Noise floor)
+const MAX_RISK_PERCENT = 1.8;  // Maximum SL distance: 1.8% (Risk cap)
 
 // Weights for each TP in the ladder (35%, 35%, 15%, 15%)
 const TP_WEIGHTS = [0.35, 0.35, 0.15, 0.15];
@@ -18,7 +17,6 @@ export class RiskEngine {
         // ─── Step 1: Calculate initial SL from structure + ATR ───
         let sl: number;
         if (suggestedSl) {
-            // Strategy provided an exact structural invalidation level
             sl = suggestedSl;
         } else if (direction === SignalDirection.LONG) {
             sl = Math.min(ctx.liquidity.localRangeLow || (entry - 2 * atr), entry - 1.5 * atr);
@@ -26,15 +24,16 @@ export class RiskEngine {
             sl = Math.max(ctx.liquidity.localRangeHigh || (entry + 2 * atr), entry + 1.5 * atr);
         }
 
-        // ─── Step 2: Cap SL distance to MAX_RISK_PERCENT ───
+        // ─── Step 2: Enforce Risk Corridor (0.35% - 1.8%) ───
         let risk = Math.abs(entry - sl);
-        const maxRisk = entry * (MAX_RISK_PERCENT / 100);
+        let currentRiskPct = (risk / entry) * 100;
 
-        if (risk > maxRisk) {
-            risk = maxRisk;
-            sl = direction === SignalDirection.LONG
-                ? entry - risk
-                : entry + risk;
+        if (currentRiskPct > MAX_RISK_PERCENT) {
+            risk = entry * (MAX_RISK_PERCENT / 100);
+            sl = direction === SignalDirection.LONG ? entry - risk : entry + risk;
+        } else if (currentRiskPct < MIN_RISK_PERCENT) {
+            risk = entry * (MIN_RISK_PERCENT / 100);
+            sl = direction === SignalDirection.LONG ? entry - risk : entry + risk;
         }
 
         // ─── Step 3: Calculate TP levels (Structural Targets) ───

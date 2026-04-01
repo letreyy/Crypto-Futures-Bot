@@ -15,6 +15,7 @@ import { FinalSignal, StrategyContext, StrategySignalCandidate } from '../core/t
 import { passesGlobalFilters, passesDirectionFilter } from '../strategies/global-filters.js';
 import { TimeFilters } from '../market/time-filters.js';
 import { CombinationEngine } from '../strategies/combination-engine.js';
+import { TelemetryLogger } from './telemetry-logger.js';
 
 export class ScanWorker {
     private isRunning: boolean = false;
@@ -136,20 +137,22 @@ export class ScanWorker {
 
                 for (const candidate of allCandidates) {
                     const { score, label } = ScoringEngine.calculate(ctx, candidate);
+                    const levels = RiskEngine.calculateLevels(ctx, candidate);
+                    
+                    // NEW: Log ALL candidates to telemetry BEFORE any filters
+                    TelemetryLogger.log(symbol, candidate, levels, score);
                     
                     if (score >= config.bot.minSignalScore) {
                         if (!dedupStore.isCooldown(symbol, candidate.strategyName, candidate.direction)) {
-                            const levels = RiskEngine.calculateLevels(ctx, candidate);
                             const leverageSuggestion = tradeExecutor.calculateLeverage(levels.riskPercent);
                             
-                            // ─── Filter: REJECT signals with low leveraged potential ───
-                            // We check the final TP4 target with leverage.
-                            const tp4Price = levels.tp[3];
-                            const potentialProfitPct = (Math.abs(tp4Price - levels.entry) / levels.entry) * 100;
-                            const leveragedProfit = potentialProfitPct * leverageSuggestion;
+                            // ─── Filter: REJECT signals with low weighted profit potential ───
+                            // Weighted Profit = Weighted R:R * Account Risk %
+                            // e.g. RR 1.5 * Risk 1% = 1.5% total expected account gain
+                            const weightedProfit = levels.rrRatio * (tradeExecutor as any).targetRiskPercent;
 
-                            if (leveragedProfit < config.bot.minProfitLeveraged) {
-                                logger.info(`[REJECTED LOW PROFIT] ${symbol} ${candidate.strategyName}: Expected TP4 profit ${leveragedProfit.toFixed(2)}% < ${config.bot.minProfitLeveraged}%`);
+                            if (weightedProfit < config.bot.minProfitLeveraged) {
+                                logger.info(`[REJECTED LOW PROFIT] ${symbol} ${candidate.strategyName}: Weighted profit ${weightedProfit.toFixed(2)}% < ${config.bot.minProfitLeveraged}%`);
                                 continue;
                             }
                             
