@@ -20,6 +20,7 @@ interface Thresholds {
     minN24: number;
     softPnl: number;
     softWR: number;
+    softHours: number; // Hours for soft pause (default 12, can be 6 for rare setups)
     hardPF: number;
     hardLS: number;
     unlockN: number;
@@ -28,21 +29,24 @@ interface Thresholds {
 }
 
 const DEFAULT_THRESHOLDS: Record<string, Thresholds> = {
-    'Order Block Retest': { minN24: 14, softPnl: -18, softWR: 45, hardPF: 0.85, hardLS: 5, unlockN: 10, unlockWR: 52, unlockPF: 1.05 },
-    'Liquidity Sweep': { minN24: 12, softPnl: -16, softWR: 42, hardPF: 0.82, hardLS: 5, unlockN: 8, unlockWR: 50 },
-    'Fair Value Gap': { minN24: 16, softPnl: -20, softWR: 43, hardPF: 0.80, hardLS: 6, unlockN: 12, unlockWR: 50, unlockPF: 1.0 },
-    'Delta Divergence': { minN24: 10, softPnl: -12, softWR: 40, hardPF: 0.85, hardLS: 4, unlockN: 8, unlockWR: 50, unlockPF: 1.0 },
-    'Breakout Failure': { minN24: 10, softPnl: -14, softWR: 42, hardPF: 0.82, hardLS: 4, unlockN: 8, unlockWR: 50 },
-    'VWAP Reversion': { minN24: 10, softPnl: -12, softWR: 40, hardPF: 0.80, hardLS: 4, unlockN: 8, unlockWR: 52, unlockPF: 1.0 },
-    'EMA Ribbon Scalp': { minN24: 14, softPnl: -18, softWR: 44, hardPF: 0.80, hardLS: 5, unlockN: 10, unlockWR: 52, unlockPF: 1.05 },
-    'BOS/CHoCH': { minN24: 10, softPnl: -14, softWR: 42, hardPF: 0.82, hardLS: 4, unlockN: 8, unlockWR: 50 },
-    'Absorption': { minN24: 8, softPnl: -10, softWR: 40, hardPF: 0.80, hardLS: 4, unlockN: 6, unlockWR: 50 },
-    // Combo
-    'Liquidity Trap Reversal': { minN24: 6, softPnl: -8, softWR: 45, hardPF: 0.9, hardLS: 3, unlockN: 5, unlockWR: 55 },
-    'Trend Continuity': { minN24: 8, softPnl: -10, softWR: 45, hardPF: 0.9, hardLS: 4, unlockN: 6, unlockWR: 52 },
-    'VWAP Reversion Pro': { minN24: 6, softPnl: -8, softWR: 45, hardPF: 0.9, hardLS: 3, unlockN: 5, unlockWR: 55 },
-    'Breakout With Fuel': { minN24: 6, softPnl: -8, softWR: 45, hardPF: 0.9, hardLS: 3, unlockN: 5, unlockWR: 55 },
-    'Funding Trap': { minN24: 5, softPnl: -7, softWR: 45, hardPF: 0.9, hardLS: 3, unlockN: 4, unlockWR: 55 }
+    // ─── Main Strategies (minN raised to avoid false pauses) ───
+    'Order Block Retest': { minN24: 16, softPnl: -18, softWR: 45, softHours: 12, hardPF: 0.85, hardLS: 5, unlockN: 10, unlockWR: 52, unlockPF: 1.05 },
+    'Liquidity Sweep':    { minN24: 14, softPnl: -16, softWR: 42, softHours: 12, hardPF: 0.82, hardLS: 5, unlockN: 8,  unlockWR: 50 },
+    'Fair Value Gap':     { minN24: 16, softPnl: -20, softWR: 43, softHours: 6,  hardPF: 0.80, hardLS: 6, unlockN: 12, unlockWR: 50, unlockPF: 1.0 }, // rare setups = 6h soft
+    'Delta Divergence':   { minN24: 14, softPnl: -12, softWR: 40, softHours: 12, hardPF: 0.85, hardLS: 4, unlockN: 8,  unlockWR: 50, unlockPF: 1.0 },
+    'Breakout Failure':   { minN24: 14, softPnl: -14, softWR: 42, softHours: 12, hardPF: 0.82, hardLS: 4, unlockN: 8,  unlockWR: 50 },
+    'VWAP Reversion':     { minN24: 14, softPnl: -12, softWR: 40, softHours: 12, hardPF: 0.80, hardLS: 4, unlockN: 8,  unlockWR: 52, unlockPF: 1.0 },
+    'EMA Ribbon Scalp':   { minN24: 16, softPnl: -18, softWR: 44, softHours: 12, hardPF: 0.80, hardLS: 5, unlockN: 10, unlockWR: 52, unlockPF: 1.05 },
+    'BOS/CHoCH':          { minN24: 14, softPnl: -14, softWR: 42, softHours: 12, hardPF: 0.82, hardLS: 4, unlockN: 8,  unlockWR: 50 },
+    // ─── Rare / Low-frequency strategies (soft pause reduced to 6h) ───
+    'Absorption':         { minN24: 8,  softPnl: -10, softWR: 40, softHours: 6,  hardPF: 0.80, hardLS: 4, unlockN: 6,  unlockWR: 50 },
+    'Funding Reversal':   { minN24: 6,  softPnl: -10, softWR: 40, softHours: 6,  hardPF: 0.80, hardLS: 3, unlockN: 6,  unlockWR: 50, unlockPF: 1.0 },
+    // ─── Combos ───
+    'Liquidity Trap Reversal': { minN24: 6, softPnl: -8, softWR: 45, softHours: 6,  hardPF: 0.9, hardLS: 3, unlockN: 5, unlockWR: 55 },
+    'Trend Continuity':        { minN24: 8, softPnl: -10, softWR: 45, softHours: 12, hardPF: 0.9, hardLS: 4, unlockN: 6, unlockWR: 52 },
+    'VWAP Reversion Pro':      { minN24: 6, softPnl: -8, softWR: 45, softHours: 6,  hardPF: 0.9, hardLS: 3, unlockN: 5, unlockWR: 55 },
+    'Breakout With Fuel':      { minN24: 6, softPnl: -8, softWR: 45, softHours: 6,  hardPF: 0.9, hardLS: 3, unlockN: 5, unlockWR: 55 },
+    'Funding Trap':            { minN24: 5, softPnl: -7, softWR: 45, softHours: 6,  hardPF: 0.9, hardLS: 3, unlockN: 4, unlockWR: 55 }
 };
 
 const STATS_FILE = path.join(process.cwd(), 'state', 'strategy_stats.json');
@@ -170,7 +174,10 @@ export class StatsService {
     private applyPause(strategyName: string, type: 'SOFT' | 'HARD', reason: string) {
         if (this.activePauses.has(strategyName)) return;
 
-        const hours = type === 'SOFT' ? 12 : 24;
+        const thresh = DEFAULT_THRESHOLDS[strategyName];
+        const hours = type === 'SOFT'
+            ? (thresh?.softHours ?? 12)  // Use per-strategy softHours, default 12
+            : 24;
         const until = Date.now() + hours * 60 * 60 * 1000;
         this.activePauses.set(strategyName, { type, until, reason });
 

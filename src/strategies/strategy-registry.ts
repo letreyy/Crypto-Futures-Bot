@@ -12,6 +12,7 @@ import { AbsorptionStrategy } from './modules/absorption.js';
 import { VwapBandsStrategy } from './modules/vwap-bands.js';
 import { TrendingPullback1hStrategy } from './modules/trending-pullback-1h.js';
 import { VolatilitySqueezeStrategy } from './modules/volatility-squeeze.js';
+import { OpeningRangeScalpStrategy } from './modules/opening-range-scalp.js';
 import { Strategy } from './base/strategy.js';
 
 export const strategyRegistry: Strategy[] = [
@@ -34,6 +35,7 @@ export const strategyRegistry: Strategy[] = [
     new AbsorptionStrategy(),
     new TrendingPullback1hStrategy(),
     new VolatilitySqueezeStrategy(),
+    new OpeningRangeScalpStrategy(),
 
     // ─── Disabled (execute returns null or temporarily removed) ───
     new PumpDetectorStrategy(),

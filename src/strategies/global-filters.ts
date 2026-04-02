@@ -18,10 +18,10 @@ export interface FilterConfig {
 
 const DEFAULT_FILTER_CONFIG: FilterConfig = {
     htfTrendEnabled: true,
-    volatilityMinAtrPct: 0.1,    // Below 0.1% ATR = too flat, don't trade
+    volatilityMinAtrPct: 0.08,   // Below 0.08% ATR = too flat, don't trade
     volatilityMaxAtrPct: 5.0,    // Above 5% ATR = too volatile / likely manipulated
     sessionEnabled: true,
-    deadHoursUTC: [0, 1, 2, 3],  // 00:00-03:59 UTC = dead zone (late Asia, no volume)
+    deadHoursUTC: [1, 2],        // 01:00-02:59 UTC = truly dead zone (compressed from 4h to 2h)
     btcFilterEnabled: true,      // Reject altcoin signals that fight the BTC trend
 };
 
@@ -54,24 +54,38 @@ export function passesGlobalFilters(ctx: StrategyContext): boolean {
     return true;
 }
 
+// Mean-reversion strategies trade pullbacks against the momentum —
+// binding them to BTC trend filters kills their edge.
+const MEAN_REVERSION_STRATEGIES = new Set([
+    'VWAP Reversion',
+    'Delta Divergence',
+    'Absorption',
+    'Order Flow Imbalance',
+    'VWAP Reversion Pro',
+    'Funding Reversal',
+    'Range Bounce',
+]);
+
 /**
  * Post-execution filter: is this signal direction allowed by HTF trend?
  * Returns true = signal is allowed, false = signal is rejected.
  */
-export function passesDirectionFilter(ctx: StrategyContext, direction: SignalDirection): boolean {
+export function passesDirectionFilter(ctx: StrategyContext, direction: SignalDirection, strategyName?: string): boolean {
     if (!filterConfig.htfTrendEnabled) return true;
+
+    const isMeanReversion = strategyName ? MEAN_REVERSION_STRATEGIES.has(strategyName) : false;
 
     const price = ctx.candles[ctx.candles.length - 1].close;
     const ema200 = ctx.indicators.ema200;
 
-    // ─── Local HTF Trend Filter ───
-    if (filterConfig.htfTrendEnabled) {
+    // ─── Local HTF Trend Filter (skip for mean-reversion) ───
+    if (filterConfig.htfTrendEnabled && !isMeanReversion) {
         if (direction === SignalDirection.LONG && price < ema200) return false;
         if (direction === SignalDirection.SHORT && price > ema200) return false;
     }
 
-    // ─── Global BTC Market Filter ───
-    if (filterConfig.btcFilterEnabled && ctx.btcContext) {
+    // ─── Global BTC Market Filter (skip for mean-reversion) ───
+    if (filterConfig.btcFilterEnabled && ctx.btcContext && !isMeanReversion) {
         if (direction === SignalDirection.LONG && ctx.btcContext.trend === 'BEARISH') return false;
         if (direction === SignalDirection.SHORT && ctx.btcContext.trend === 'BULLISH') return false;
     }

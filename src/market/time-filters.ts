@@ -35,7 +35,9 @@ export class TimeFilters {
             const allowedInAsia = [
                 'liquidity-sweep', 
                 'range-bounce', 
-                'order-blocks' // OBs can trigger overnight
+                'order-blocks',   // OBs can trigger overnight
+                'vwap-reversion', // Mean-reversion works well in slow Asian consolidation
+                'delta-divergence' // Volume divergence reliable in thin markets
             ];
             return allowedInAsia.includes(strategyId);
         }

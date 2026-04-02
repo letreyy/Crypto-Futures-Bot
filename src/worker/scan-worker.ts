@@ -122,8 +122,8 @@ export class ScanWorker {
 
                     const candidate = strategy.execute(ctx);
                     if (candidate) {
-                        // HTF Direction filter
-                        if (!passesDirectionFilter(ctx, candidate.direction)) continue;
+                        // HTF Direction filter — pass strategyName so mean-reversion strategies skip BTC filter
+                        if (!passesDirectionFilter(ctx, candidate.direction, candidate.strategyName)) continue;
                         individualSignals.push(candidate);
                     }
                 }
