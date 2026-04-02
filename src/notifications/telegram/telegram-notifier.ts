@@ -24,18 +24,69 @@ export class TelegramNotifier {
 
     constructor() {
         if (config.telegram.token) {
+            // Create bot WITHOUT polling — we start it explicitly via startPolling()
             const options: any = { 
-                polling: true,
+                polling: false,
                 baseApiUrl: config.telegram.baseUrl
             };
             if (config.telegram.proxy) {
                 options.request = { proxy: config.telegram.proxy };
             }
             this.bot = new TelegramBot(config.telegram.token, options);
-            this.isPolling = true;
 
             // Clear the default side-menu, user requested to only use keyboard buttons
             this.bot.setMyCommands([]).catch(err => logger.error('Failed to clear Telegram bot commands', { error: err.message }));
+
+            // Auto-start polling
+            this.startPolling().catch(err => logger.error('Failed to auto-start Telegram polling', { error: err.message }));
+        }
+    }
+
+    /**
+     * Safely starts polling by first clearing any stale connections.
+     * Fixes the 409 Conflict error when a previous instance didn't shut down cleanly.
+     */
+    async startPolling(): Promise<void> {
+        if (!this.bot || this.isPolling) return;
+
+        try {
+            // 1. Delete any webhook (switches Telegram to getUpdates mode)
+            await this.bot.deleteWebHook();
+            
+            // 2. Small delay to let Telegram release the old long-poll connection
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // 3. Start polling
+            await this.bot.startPolling({ restart: true });
+            this.isPolling = true;
+            logger.info('Telegram bot polling started successfully.');
+
+            // 4. Handle polling errors (auto-restart on 409 conflict)
+            this.bot.on('polling_error', (err: any) => {
+                const errMsg = err?.message || '';
+                if (errMsg.includes('409 Conflict')) {
+                    logger.warn('Telegram 409 Conflict detected — restarting polling in 5s...');
+                    this.restartPolling();
+                } else {
+                    logger.error('Telegram polling error', { error: errMsg });
+                }
+            });
+
+        } catch (err: any) {
+            logger.error('Failed to start Telegram polling', { error: err.message });
+        }
+    }
+
+    private async restartPolling(): Promise<void> {
+        try {
+            if (this.bot && this.isPolling) {
+                await this.bot.stopPolling();
+                this.isPolling = false;
+            }
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            await this.startPolling();
+        } catch (err: any) {
+            logger.error('Failed to restart Telegram polling', { error: err.message });
         }
     }
 
