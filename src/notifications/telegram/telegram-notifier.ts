@@ -43,29 +43,27 @@ export class TelegramNotifier {
     }
 
     /**
-     * Safely starts polling by first clearing any stale connections.
-     * Fixes the 409 Conflict error when a previous instance didn't shut down cleanly.
+     * Safely starts polling with a delay to let any stale connections from
+     * a previous process expire on Telegram's side. Fixes 409 Conflict on restart.
      */
     async startPolling(): Promise<void> {
         if (!this.bot || this.isPolling) return;
 
         try {
-            // 1. Delete any webhook (switches Telegram to getUpdates mode)
-            await this.bot.deleteWebHook();
-            
-            // 2. Small delay to let Telegram release the old long-poll connection
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Wait for Telegram to release the previous long-poll connection (~30s max, 3s usually enough)
+            logger.info('Waiting 3s before starting Telegram polling to avoid 409 Conflict...');
+            await new Promise(resolve => setTimeout(resolve, 3000));
 
-            // 3. Start polling
-            await this.bot.startPolling({ restart: true });
+            // Start polling
+            await this.bot.startPolling({ restart: false });
             this.isPolling = true;
             logger.info('Telegram bot polling started successfully.');
 
-            // 4. Handle polling errors (auto-restart on 409 conflict)
+            // Handle polling errors (auto-restart on 409 conflict)
             this.bot.on('polling_error', (err: any) => {
                 const errMsg = err?.message || '';
                 if (errMsg.includes('409 Conflict')) {
-                    logger.warn('Telegram 409 Conflict detected — restarting polling in 5s...');
+                    logger.warn('Telegram 409 Conflict — restarting polling in 10s...');
                     this.restartPolling();
                 } else {
                     logger.error('Telegram polling error', { error: errMsg });
@@ -74,6 +72,10 @@ export class TelegramNotifier {
 
         } catch (err: any) {
             logger.error('Failed to start Telegram polling', { error: err.message });
+            // Retry after 10s if startup itself fails
+            logger.info('Retrying Telegram polling in 10s...');
+            await new Promise(resolve => setTimeout(resolve, 10000));
+            this.startPolling().catch(() => {});
         }
     }
 
