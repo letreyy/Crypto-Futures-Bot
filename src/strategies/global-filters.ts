@@ -64,6 +64,8 @@ const MEAN_REVERSION_STRATEGIES = new Set([
     'VWAP Reversion Pro',
     'Funding Reversal',
     'Range Bounce',
+    'RSI Divergence',
+    'Volume Climax Reversal',
 ]);
 
 /**

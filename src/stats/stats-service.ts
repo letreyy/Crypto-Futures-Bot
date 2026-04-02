@@ -41,6 +41,8 @@ const DEFAULT_THRESHOLDS: Record<string, Thresholds> = {
     // ─── Rare / Low-frequency strategies (soft pause reduced to 6h) ───
     'Absorption':         { minN24: 8,  softPnl: -10, softWR: 40, softHours: 6,  hardPF: 0.80, hardLS: 4, unlockN: 6,  unlockWR: 50 },
     'Funding Reversal':   { minN24: 6,  softPnl: -10, softWR: 40, softHours: 6,  hardPF: 0.80, hardLS: 3, unlockN: 6,  unlockWR: 50, unlockPF: 1.0 },
+    'RSI Divergence':     { minN24: 12, softPnl: -14, softWR: 42, softHours: 6,  hardPF: 0.82, hardLS: 4, unlockN: 8,  unlockWR: 50, unlockPF: 1.0 },
+    'Volume Climax Reversal': { minN24: 10, softPnl: -12, softWR: 42, softHours: 6, hardPF: 0.82, hardLS: 4, unlockN: 8, unlockWR: 50, unlockPF: 1.0 },
     // ─── Combos ───
     'Liquidity Trap Reversal': { minN24: 6, softPnl: -8, softWR: 45, softHours: 6,  hardPF: 0.9, hardLS: 3, unlockN: 5, unlockWR: 55 },
     'Trend Continuity':        { minN24: 8, softPnl: -10, softWR: 45, softHours: 12, hardPF: 0.9, hardLS: 4, unlockN: 6, unlockWR: 52 },

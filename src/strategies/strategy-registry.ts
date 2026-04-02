@@ -13,6 +13,8 @@ import { VwapBandsStrategy } from './modules/vwap-bands.js';
 import { TrendingPullback1hStrategy } from './modules/trending-pullback-1h.js';
 import { VolatilitySqueezeStrategy } from './modules/volatility-squeeze.js';
 import { OpeningRangeScalpStrategy } from './modules/opening-range-scalp.js';
+import { RsiDivergenceStrategy } from './modules/rsi-divergence.js';
+import { VolumeClimaxReversalStrategy } from './modules/volume-climax-reversal.js';
 import { Strategy } from './base/strategy.js';
 
 export const strategyRegistry: Strategy[] = [
@@ -36,6 +38,9 @@ export const strategyRegistry: Strategy[] = [
     new TrendingPullback1hStrategy(),
     new VolatilitySqueezeStrategy(),
     new OpeningRangeScalpStrategy(),
+    // ─── Reversal / Mean-Reversion ───
+    new RsiDivergenceStrategy(),
+    new VolumeClimaxReversalStrategy(),
 
     // ─── Disabled (execute returns null or temporarily removed) ───
     new PumpDetectorStrategy(),
