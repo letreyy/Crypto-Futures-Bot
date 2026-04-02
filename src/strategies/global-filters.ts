@@ -66,6 +66,7 @@ const MEAN_REVERSION_STRATEGIES = new Set([
     'Range Bounce',
     'RSI Divergence',
     'Volume Climax Reversal',
+    'Bollinger Band Reversal',
 ]);
 
 /**

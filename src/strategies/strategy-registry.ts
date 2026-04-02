@@ -15,6 +15,8 @@ import { VolatilitySqueezeStrategy } from './modules/volatility-squeeze.js';
 import { OpeningRangeScalpStrategy } from './modules/opening-range-scalp.js';
 import { RsiDivergenceStrategy } from './modules/rsi-divergence.js';
 import { VolumeClimaxReversalStrategy } from './modules/volume-climax-reversal.js';
+import { EmaCrossMomentumStrategy } from './modules/ema-cross-momentum.js';
+import { BollingerBandReversalStrategy } from './modules/bb-reversal.js';
 import { Strategy } from './base/strategy.js';
 
 export const strategyRegistry: Strategy[] = [
@@ -41,6 +43,8 @@ export const strategyRegistry: Strategy[] = [
     // ─── Reversal / Mean-Reversion ───
     new RsiDivergenceStrategy(),
     new VolumeClimaxReversalStrategy(),
+    new EmaCrossMomentumStrategy(),
+    new BollingerBandReversalStrategy(),
 
     // ─── Disabled (execute returns null or temporarily removed) ───
     new PumpDetectorStrategy(),
