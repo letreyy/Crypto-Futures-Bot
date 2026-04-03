@@ -146,15 +146,14 @@ export class ScanWorker {
                         if (!dedupStore.isCooldown(symbol, candidate.strategyName, candidate.direction)) {
                             const leverageSuggestion = tradeExecutor.calculateLeverage(levels.riskPercent);
                             
-                            // ─── Filter: REJECT signals with low weighted profit potential ───
-                            // Weighted Profit = Weighted R:R * Account Risk %
-                            // e.g. RR 1.5 * Risk 1% = 1.5% total expected account gain
-                            const weightedProfit = levels.rrRatio * (tradeExecutor as any).targetRiskPercent;
-
-                            if (weightedProfit < config.bot.minProfitLeveraged) {
-                                logger.info(`[REJECTED LOW PROFIT] ${symbol} ${candidate.strategyName}: Weighted profit ${weightedProfit.toFixed(2)}% < ${config.bot.minProfitLeveraged}%`);
+                            // ─── Filter: minimum R:R ratio ───
+                            // MIN_PROFIT_LEVERAGED is used as minimum R:R threshold (e.g. 1.5 = need at least 1.5R)
+                            const minRR = config.bot.minProfitLeveraged;
+                            if (levels.rrRatio < minRR) {
+                                logger.info(`[REJECTED LOW RR] ${symbol} ${candidate.strategyName}: R:R ${levels.rrRatio.toFixed(2)} < min ${minRR}`);
                                 continue;
                             }
+
                             
                             symbolSignals.push({
                                 ...candidate,

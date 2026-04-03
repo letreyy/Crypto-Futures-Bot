@@ -19,39 +19,47 @@ import { EmaCrossMomentumStrategy } from './modules/ema-cross-momentum.js';
 import { BollingerBandReversalStrategy } from './modules/bb-reversal.js';
 import { Strategy } from './base/strategy.js';
 
+// ═══════════════════════════════════════════════════════
+// ACTIVE STRATEGIES — 6 proven strategies with real stats
+// Last updated: 2026-04-03. Freeze for 2-3 weeks to
+// accumulate clean performance data per strategy.
+// ═══════════════════════════════════════════════════════
 export const strategyRegistry: Strategy[] = [
-    // ─── Core ───
-    new VWAPReversionStrategy(),
-    new LiquiditySweepStrategy(),
-    // ─── Extra (active) ───
+    new OrderBlocksStrategy(),       // #1: Best performer — 87% WR, +770% PnL (Mar 29-30)
+    new LiquiditySweepStrategy(),    // #2: 60% WR, +343% PnL (Mar 29-30)
+    new FairValueGapStrategy(),      // #3: SMC core, good sample size
+    new DeltaDivergenceStrategy(),   // #4: 100% WR on 4 trades, mean-reversion
+    new BreakoutFailureStrategy(),   // #5: 100% WR on 3 trades, counter-trend
+    new VWAPReversionStrategy(),     // #6: Core mean-reversion, session-agnostic
+];
+
+// ═══════════════════════════════════════════════════════
+// DISABLED — awaiting 50+ trade sample before re-enabling
+// To re-enable: move entries back to strategyRegistry above
+// ═══════════════════════════════════════════════════════
+export const disabledStrategyRegistry: Strategy[] = [
+    // Unproven in current market conditions:
     new RangeBounceStrategy(),
-    new BreakoutFailureStrategy(),
-    // ─── Specialized ───
     new FundingReversalStrategy(),
     new EmaRibbonScalpStrategy(),
     new OrderFlowImbalanceStrategy(),
-    // ─── SMC ───
     new BosChochStrategy(),
-    new FairValueGapStrategy(),
-    new OrderBlocksStrategy(),
-    // ─── New ───
-    new DeltaDivergenceStrategy(),
     new AbsorptionStrategy(),
     new TrendingPullback1hStrategy(),
     new VolatilitySqueezeStrategy(),
     new OpeningRangeScalpStrategy(),
-    // ─── Reversal / Mean-Reversion ───
     new RsiDivergenceStrategy(),
     new VolumeClimaxReversalStrategy(),
     new EmaCrossMomentumStrategy(),
     new BollingerBandReversalStrategy(),
-
-    // ─── Disabled (execute returns null or temporarily removed) ───
+    // Permanently disabled (logic issues):
     new PumpDetectorStrategy(),
     new MicroPullbackStrategy(),
     new DumpBounceStrategy(),
     new OIDivergenceStrategy(),
     new VwapBandsStrategy(),
 ];
+
+
 
 
