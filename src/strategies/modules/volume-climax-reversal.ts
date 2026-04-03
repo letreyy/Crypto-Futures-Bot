@@ -91,7 +91,6 @@ export class VolumeClimaxReversalStrategy implements Strategy {
                 strategyName: this.name,
                 direction: SignalDirection.LONG,
                 orderType: 'MARKET',
-                suggestedTarget: indicators.vwap, // Цель — возврат к VWAP
                 suggestedSl: last.low - (indicators.atr * 0.15), // Стоп прямо под хвостом
                 confidence: Math.min(confidence, 92),
                 reasons,
@@ -130,7 +129,6 @@ export class VolumeClimaxReversalStrategy implements Strategy {
                 strategyName: this.name,
                 direction: SignalDirection.SHORT,
                 orderType: 'MARKET',
-                suggestedTarget: indicators.vwap,
                 suggestedSl: last.high + (indicators.atr * 0.15),
                 confidence: Math.min(confidence, 92),
                 reasons,

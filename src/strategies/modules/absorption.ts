@@ -53,7 +53,6 @@ export class AbsorptionStrategy implements Strategy {
             return {
                 strategyName: this.name,
                 direction: SignalDirection.LONG,
-                suggestedTarget: indicators.vwap, // Mean reversion back to VWAP
                 suggestedSl: last.low - (indicators.atr * 0.2), // Micro SL below the absorption candle
                 confidence: 76,
                 reasons: [
@@ -71,7 +70,6 @@ export class AbsorptionStrategy implements Strategy {
             return {
                 strategyName: this.name,
                 direction: SignalDirection.SHORT,
-                suggestedTarget: indicators.vwap, // Mean reversion back to VWAP
                 suggestedSl: last.high + (indicators.atr * 0.2), // Micro SL above the absorption candle
                 confidence: 76,
                 reasons: [
