@@ -20,17 +20,16 @@ import { BollingerBandReversalStrategy } from './modules/bb-reversal.js';
 import { Strategy } from './base/strategy.js';
 
 // ═══════════════════════════════════════════════════════
-// ACTIVE STRATEGIES — 6 proven strategies with real stats
-// Last updated: 2026-04-03. Freeze for 2-3 weeks to
-// accumulate clean performance data per strategy.
+// ACTIVE STRATEGIES (Updated 2026-04-05)
 // ═══════════════════════════════════════════════════════
 export const strategyRegistry: Strategy[] = [
-    new OrderBlocksStrategy(),       // #1: Best performer — 87% WR, +770% PnL (Mar 29-30)
-    new LiquiditySweepStrategy(),    // #2: 60% WR, +343% PnL (Mar 29-30)
-    new FairValueGapStrategy(),      // #3: SMC core, good sample size
-    new DeltaDivergenceStrategy(),   // #4: 100% WR on 4 trades, mean-reversion
-    new BreakoutFailureStrategy(),   // #5: 100% WR on 3 trades, counter-trend
-    new VWAPReversionStrategy(),     // #6: Core mean-reversion, session-agnostic
+    // ─── The Winners (Consistent Profit) ───
+    new OrderBlocksStrategy(),       // #1: Best performer — 64% WR, +18.59% PnL (as of Apr 5)
+    new LiquiditySweepStrategy(),    // #2: Good R:R survivor — 44% WR, +9.71% PnL (as of Apr 5)
+    
+    // ─── New Tests (Strict Filters) ───
+    new EmaCrossMomentumStrategy(),    // Trend-following (avoid catching falling knives)
+    new VolumeClimaxReversalStrategy() // Strict mean-reversion (extreme volume & wick rejection)
 ];
 
 // ═══════════════════════════════════════════════════════
@@ -38,7 +37,13 @@ export const strategyRegistry: Strategy[] = [
 // To re-enable: move entries back to strategyRegistry above
 // ═══════════════════════════════════════════════════════
 export const disabledStrategyRegistry: Strategy[] = [
-    // Unproven in current market conditions:
+    // ─── Failed live tests (bleeding PnL as of Apr 5) ───
+    new FairValueGapStrategy(),      // 17% WR, -24.12% PnL (Noise on 15m)
+    new VWAPReversionStrategy(),     // 25% WR, -14.26% PnL (Gets crushed in trends)
+    new DeltaDivergenceStrategy(),   // 33% WR, -13.69% PnL (Poor performance)
+    new BreakoutFailureStrategy(),   // 17% WR, -7.87% PnL (Poor performance)
+
+    // ─── Unproven in current market conditions ───
     new RangeBounceStrategy(),
     new FundingReversalStrategy(),
     new EmaRibbonScalpStrategy(),
@@ -49,10 +54,9 @@ export const disabledStrategyRegistry: Strategy[] = [
     new VolatilitySqueezeStrategy(),
     new OpeningRangeScalpStrategy(),
     new RsiDivergenceStrategy(),
-    new VolumeClimaxReversalStrategy(),
-    new EmaCrossMomentumStrategy(),
     new BollingerBandReversalStrategy(),
-    // Permanently disabled (logic issues):
+
+    // ─── Permanently disabled (logic issues) ───
     new PumpDetectorStrategy(),
     new MicroPullbackStrategy(),
     new DumpBounceStrategy(),
