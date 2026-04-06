@@ -14,6 +14,8 @@ async function bootstrap() {
     try {
         await tradeExecutor.init(strategyRegistry);
         await scanWorker.start();
+        
+        telegramNotifier.sendTextMessage('🚀 <b>Trading Bot Online!</b>\nService has been successfully started and is now scanning the markets.');
     } catch (err: any) {
         logger.error('Fatal crash on startup', { error: err.message });
         process.exit(1);
