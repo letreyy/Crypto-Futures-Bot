@@ -1,4 +1,4 @@
-FROM node:20-slim AS builder
+FROM public.ecr.aws/docker/library/node:20-slim AS builder
 
 WORKDIR /app
 
@@ -9,7 +9,7 @@ RUN npm install --include=dev
 COPY . .
 RUN npm run build
 
-FROM node:20-slim
+FROM public.ecr.aws/docker/library/node:20-slim
 
 # Install system fonts so Sharp can render text on SVG charts (fixes the "square" characters issue)
 RUN apt-get update && apt-get install -y --no-install-recommends \
