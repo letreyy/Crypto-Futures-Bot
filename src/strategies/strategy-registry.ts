@@ -20,16 +20,15 @@ import { BollingerBandReversalStrategy } from './modules/bb-reversal.js';
 import { Strategy } from './base/strategy.js';
 
 // ═══════════════════════════════════════════════════════
-// ACTIVE STRATEGIES (Updated 2026-04-05)
+// ACTIVE STRATEGIES (Updated 2026-04-06)
 // ═══════════════════════════════════════════════════════
 export const strategyRegistry: Strategy[] = [
     // ─── The Winners (Consistent Profit) ───
-    new OrderBlocksStrategy(),       // #1: Best performer — 64% WR, +18.59% PnL (as of Apr 5)
-    new LiquiditySweepStrategy(),    // #2: Good R:R survivor — 44% WR, +9.71% PnL (as of Apr 5)
+    new OrderBlocksStrategy(),       // #1: Best performer — 75% WR, +246.95% PnL (as of Apr 6)
+    new LiquiditySweepStrategy(),    // #2: Good R:R survivor — 75% WR, +170.02% PnL (as of Apr 6)
     
     // ─── New Tests (Strict Filters) ───
     new EmaCrossMomentumStrategy(),    // Trend-following (avoid catching falling knives)
-    new VolumeClimaxReversalStrategy() // Strict mean-reversion (extreme volume & wick rejection)
 ];
 
 // ═══════════════════════════════════════════════════════
@@ -37,7 +36,8 @@ export const strategyRegistry: Strategy[] = [
 // To re-enable: move entries back to strategyRegistry above
 // ═══════════════════════════════════════════════════════
 export const disabledStrategyRegistry: Strategy[] = [
-    // ─── Failed live tests (bleeding PnL as of Apr 5) ───
+    // ─── Failed live tests (bleeding PnL as of Apr 6) ───
+    new VolumeClimaxReversalStrategy(), // 0% WR, -75.51% PnL (Bleeding fast, disabled)
     new FairValueGapStrategy(),      // 17% WR, -24.12% PnL (Noise on 15m)
     new VWAPReversionStrategy(),     // 25% WR, -14.26% PnL (Gets crushed in trends)
     new DeltaDivergenceStrategy(),   // 33% WR, -13.69% PnL (Poor performance)

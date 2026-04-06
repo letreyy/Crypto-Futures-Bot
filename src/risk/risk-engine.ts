@@ -4,8 +4,8 @@ import { StrategyContext, SignalLevels, StrategySignalCandidate } from '../core/
 const MIN_RISK_PERCENT = 0.35; // Minimum SL distance: 0.35% (Noise floor)
 const MAX_RISK_PERCENT = 1.8;  // Maximum SL distance: 1.8% (Risk cap)
 
-// Weights for each TP in the ladder (35%, 35%, 15%, 15%)
-const TP_WEIGHTS = [0.35, 0.35, 0.15, 0.15];
+// Weights for each TP in the ladder (40%, 40%, 10%, 10%)
+const TP_WEIGHTS = [0.40, 0.40, 0.10, 0.10];
 
 export class RiskEngine {
     static calculateLevels(ctx: StrategyContext, candidate: StrategySignalCandidate): SignalLevels {

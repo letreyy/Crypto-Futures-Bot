@@ -296,6 +296,13 @@ ${list}
     }
 
     /**
+     * Get number of currently active positions or pending limit orders
+     */
+    getActiveAndPendingCount(): number {
+        return this.activeTrades.length;
+    }
+
+    /**
      * Checks if a strategy is disabled (manually or by circuit breaker)
      */
     isStrategyDisabled(strategyName: string): boolean {
@@ -404,9 +411,9 @@ ${list}
 
                 if (!tpReached) break;
 
-                // 35% for TP1 and TP2, index 0 and 1
-                // 15% for TP3 and TP4, index 2 and 3
-                const portion = trade.tpHit < 2 ? 0.35 : 0.15;
+                // 40% for TP1 and TP2, index 0 and 1
+                // 10% for TP3 and TP4, index 2 and 3
+                const portion = trade.tpHit < 2 ? 0.40 : 0.10;
                 const tpPnlRaw = isLong
                     ? (nextTp - trade.entryPrice) / trade.entryPrice
                     : (trade.entryPrice - nextTp) / trade.entryPrice;
@@ -577,7 +584,7 @@ ${list}
             logger.info(`[LIVE] Entry order placed: ${entryOrder.id}`);
 
             const tps = signal.levels.tp;
-            const tpPortions = [0.35, 0.35, 0.15, 0.15];
+            const tpPortions = [0.40, 0.40, 0.10, 0.10];
             const closeDirection = direction === 'buy' ? 'sell' : 'buy';
 
             for (let i = 0; i < tps.length; i++) {

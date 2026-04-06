@@ -154,6 +154,14 @@ export class ScanWorker {
                                 continue;
                             }
 
+                            // ─── Filter: minimum absolute TP distance ───
+                            // Discard microscopic trades where TP1 is too close to Entry (commissions will eat profit)
+                            const tpMovePct = (Math.abs(levels.tp[0] - levels.entry) / levels.entry) * 100;
+                            if (tpMovePct < config.bot.minTpDistancePct) {
+                                logger.info(`[REJECTED MICRO MOVE] ${symbol} ${candidate.strategyName}: TP1 is only ${tpMovePct.toFixed(2)}% away (min ${config.bot.minTpDistancePct}%)`);
+                                continue;
+                            }
+
                             
                             symbolSignals.push({
                                 ...candidate,
@@ -177,6 +185,16 @@ export class ScanWorker {
 
                     // Pass the current live price to calculate drawdown purely for DCA evaluation
                     const currentPrice = candles[candles.length - 1].close;
+
+                    // ─── Systemic Risk Filter (Max Concurrent Trades) ───
+                    if (!activeTrade) {
+                        const activeCount = tradeExecutor.getActiveAndPendingCount();
+                        if (activeCount >= config.bot.maxConcurrentTrades) {
+                            logger.info(`[MAX CAPACITY REACHED] Ignoring ${symbol} signal. Active: ${activeCount}/${config.bot.maxConcurrentTrades}`);
+                            continue;
+                        }
+                    }
+
                     await tradeExecutor.processSignal(finalSignal, currentPrice);
                     
                     // Do not log to telegram or deduplicate if it's just a duplicate signal that got rejected
