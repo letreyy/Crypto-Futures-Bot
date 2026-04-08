@@ -1,4 +1,5 @@
 import TelegramBot from 'node-telegram-bot-api';
+import { SocksProxyAgent } from 'socks-proxy-agent';
 import { config } from '../../config/index.js';
 import { logger } from '../../core/utils/logger.js';
 import { FinalSignal, StrategyContext } from '../../core/types/bot-types.js';
@@ -28,9 +29,20 @@ export class TelegramNotifier {
                 polling: true,
                 baseApiUrl: config.telegram.baseUrl
             };
+
             if (config.telegram.proxy) {
-                options.request = { proxy: config.telegram.proxy };
+                const proxy = config.telegram.proxy;
+                if (proxy.startsWith('socks')) {
+                    logger.info(`Using SOCKS proxy for Telegram: ${proxy}`);
+                    options.request = {
+                        agent: new SocksProxyAgent(proxy)
+                    };
+                } else {
+                    logger.info(`Using HTTP proxy for Telegram: ${proxy}`);
+                    options.request = { proxy: proxy };
+                }
             }
+
             this.bot = new TelegramBot(config.telegram.token, options);
             this.isPolling = true;
 
@@ -85,7 +97,7 @@ export class TelegramNotifier {
         }
 
         message += `💰 <b>Result:</b> ${sign}${pnlPercent.toFixed(2)}%
-📊 <b>Total Today:</b> ${totalSign}${totalPnlToday.toFixed(2)}%`;
+88: 📊 <b>Total Today:</b> ${totalSign}${totalPnlToday.toFixed(2)}%`;
 
         try {
             await this.bot.sendMessage(config.telegram.chatId, message, { parse_mode: 'HTML', reply_markup: MAIN_KEYBOARD });
@@ -150,7 +162,7 @@ export class TelegramNotifier {
 💰 <b>Risk/Reward:</b> 1:${s.levels.rrRatio}
 
 📋 <b>Reasons:</b>
-${s.reasons.map(r => `• ${r}`).join('\n')}
+${s.reasons.map((r: any) => `• ${r}`).join('\n')}
 
 ⏰ <i>${new Date(s.timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'Europe/Moscow' })} | Valid for: ${s.expireMinutes}m</i>`;
     }

@@ -1,0 +1,10 @@
+{
+  "trades": [
+    {
+      "timestamp": 1775503983430,
+      "strategyName": "Liquidity Sweep",
+      "pnl": -1.0499999999999934,
+      "isWin": false
+    }
+  ]
+}
