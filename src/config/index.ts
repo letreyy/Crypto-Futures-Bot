@@ -17,8 +17,7 @@ export const config = {
   telegram: {
     token: process.env.TELEGRAM_BOT_TOKEN || '',
     chatId: process.env.TELEGRAM_CHAT_ID || '',
-    baseUrl: process.env.TELEGRAM_BASE_URL || 'https://api.telegram.org',
-    proxy: process.env.TELEGRAM_PROXY || ''
+    baseUrl: process.env.TELEGRAM_BASE_URL || 'https://api.telegram.org'
   },
   bot: {
     logLevel: process.env.LOG_LEVEL || 'info',

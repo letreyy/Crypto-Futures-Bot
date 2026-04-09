@@ -1,5 +1,4 @@
 import TelegramBot from 'node-telegram-bot-api';
-import { SocksProxyAgent } from 'socks-proxy-agent';
 import { config } from '../../config/index.js';
 import { logger } from '../../core/utils/logger.js';
 import { FinalSignal, StrategyContext } from '../../core/types/bot-types.js';
@@ -25,25 +24,10 @@ export class TelegramNotifier {
 
     constructor() {
         if (config.telegram.token) {
-            const options: any = { 
+            this.bot = new TelegramBot(config.telegram.token, { 
                 polling: true,
                 baseApiUrl: config.telegram.baseUrl
-            };
-
-            if (config.telegram.proxy) {
-                const proxy = config.telegram.proxy;
-                if (proxy.startsWith('socks')) {
-                    logger.info(`Using SOCKS proxy for Telegram: ${proxy}`);
-                    options.request = {
-                        agent: new SocksProxyAgent(proxy)
-                    };
-                } else {
-                    logger.info(`Using HTTP proxy for Telegram: ${proxy}`);
-                    options.request = { proxy: proxy };
-                }
-            }
-
-            this.bot = new TelegramBot(config.telegram.token, options);
+            });
             this.isPolling = true;
 
             // Clear the default side-menu, user requested to only use keyboard buttons
