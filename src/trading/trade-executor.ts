@@ -303,6 +303,13 @@ ${list}
     }
 
     /**
+     * Get number of active/pending trades in a specific direction
+     */
+    getActiveCountByDirection(direction: SignalDirection): number {
+        return this.activeTrades.filter(t => t.direction === direction).length;
+    }
+
+    /**
      * Checks if a strategy is disabled (manually or by circuit breaker)
      */
     isStrategyDisabled(strategyName: string): boolean {

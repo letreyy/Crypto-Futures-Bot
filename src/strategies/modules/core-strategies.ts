@@ -84,39 +84,53 @@ export class LiquiditySweepStrategy implements Strategy {
         if (last.volume <= indicators.volumeSma * 1.2) return null;
 
         if (liquidity.sweptLow && liquidity.reclaimedLevel && liquidity.localRangeLow) {
+            // Trend filter: Don't sweep long if EMA20 is clearly below EMA200
+            if (indicators.ema20 < indicators.ema200 * 0.99) return null;
+            if (indicators.rsi > 65) return null; // Already bounced too much
+
             // SL behind the wick that swept (the absolute low of recent candles)
             const sweepWickLow = Math.min(...candles.slice(-5).map(c => c.low));
+            
+            // Safety: if sweep wick is too deep, skip
+            if ((liquidity.localRangeLow - sweepWickLow) / sweepWickLow * 100 > 5.0) return null;
+
             return {
                 strategyName: this.name,
                 direction: SignalDirection.LONG,
                 orderType: 'LIMIT',
                 suggestedEntry: liquidity.localRangeLow, // Retest of the swept level
-                suggestedTarget: liquidity.localRangeHigh || undefined, // Target the opposite side of the range
-                suggestedSl: sweepWickLow - (indicators.atr * 0.2), // Behind the sweep wick + buffer
-                confidence: 90,
+                suggestedTarget: liquidity.localRangeHigh || (liquidity.localRangeLow + (liquidity.localRangeLow - sweepWickLow) * 4), 
+                suggestedSl: sweepWickLow - (indicators.atr * 0.1), 
+                confidence: 85,
                 reasons: [
                     'Swing low sweep with volume', 
                     'Range reclaimed → expecting retest of the low',
-                    `Limit set at original range low: ${liquidity.localRangeLow.toFixed(4)}`
+                    'Trend: Price above long-term EMA200 zone'
                 ],
                 expireMinutes: 90 // 1.5 hours to retest
             };
         }
         if (liquidity.sweptHigh && liquidity.reclaimedLevel && liquidity.localRangeHigh) {
+            if (indicators.ema20 > indicators.ema200 * 1.01) return null;
+            if (indicators.rsi < 35) return null;
+
             // SL behind the wick that swept (the absolute high of recent candles)
             const sweepWickHigh = Math.max(...candles.slice(-5).map(c => c.high));
+
+            if ((sweepWickHigh - liquidity.localRangeHigh) / liquidity.localRangeHigh * 100 > 5.0) return null;
+
             return {
                 strategyName: this.name,
                 direction: SignalDirection.SHORT,
                 orderType: 'LIMIT',
                 suggestedEntry: liquidity.localRangeHigh, // Retest of the swept level
-                suggestedTarget: liquidity.localRangeLow || undefined, // Target the opposite side of the range
-                suggestedSl: sweepWickHigh + (indicators.atr * 0.2), // Behind the sweep wick + buffer
-                confidence: 90,
+                suggestedTarget: liquidity.localRangeLow || (liquidity.localRangeHigh - (sweepWickHigh - liquidity.localRangeHigh) * 4),
+                suggestedSl: sweepWickHigh + (indicators.atr * 0.1),
+                confidence: 85,
                 reasons: [
                     'Swing high sweep with volume', 
                     'Range reclaimed → expecting retest of the high',
-                    `Limit set at original range high: ${liquidity.localRangeHigh.toFixed(4)}`
+                    'Trend: Price below long-term EMA200 zone'
                 ],
                 expireMinutes: 90 // 1.5 hours to retest
             };

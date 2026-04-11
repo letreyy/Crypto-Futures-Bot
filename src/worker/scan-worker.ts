@@ -15,6 +15,7 @@ import { FinalSignal, StrategyContext, StrategySignalCandidate } from '../core/t
 import { passesGlobalFilters, passesDirectionFilter } from '../strategies/global-filters.js';
 import { TimeFilters } from '../market/time-filters.js';
 import { CombinationEngine } from '../strategies/combination-engine.js';
+import { statsService } from '../stats/stats-service.js';
 import { TelemetryLogger } from './telemetry-logger.js';
 
 export class ScanWorker {
@@ -188,17 +189,45 @@ export class ScanWorker {
 
                     // ─── Systemic Risk Filter (Max Concurrent Trades) ───
                     if (!activeTrade) {
+                        // 1. Total capacity check
                         const activeCount = tradeExecutor.getActiveAndPendingCount();
                         if (activeCount >= config.bot.maxConcurrentTrades) {
                             logger.info(`[MAX CAPACITY REACHED] Ignoring ${symbol} signal. Active: ${activeCount}/${config.bot.maxConcurrentTrades}`);
+                            continue;
+                        }
+
+                        // 2. Directional exposure check (prevent 10 longs at once)
+                        const directionalCount = tradeExecutor.getActiveCountByDirection(finalSignal.direction);
+                        const MAX_DIRECTIONAL = 3; // Hardcoded for safety, can be moved to config
+                        if (directionalCount >= MAX_DIRECTIONAL) {
+                            logger.info(`[MAX DIRECTIONAL REACHED] Ignoring ${symbol} ${finalSignal.direction}. Already have ${directionalCount}/${MAX_DIRECTIONAL}`);
+                            continue;
+                        }
+                        
+                        // 3. BTC Momentum check (don't Long if BTC is currently dumping, even if price > EMA200)
+                        if (btcContext) {
+                            const btcKlines = await binanceClient.getKlines('BTCUSDT', '15m', 5);
+                            const lastBtc = btcKlines[btcKlines.length - 1];
+                            const btcChangePct = (lastBtc.close - lastBtc.open) / lastBtc.open * 100;
+                            
+                            if (finalSignal.direction === 'LONG' && btcChangePct < -0.3) {
+                                logger.info(`[SHARP BTC DROP] Rejecting LONG on ${symbol} because BTC is dropping (${btcChangePct.toFixed(2)}%)`);
+                                continue;
+                            }
+                            if (finalSignal.direction === 'SHORT' && btcChangePct > 0.3) {
+                                logger.info(`[SHARP BTC PUMP] Rejecting SHORT on ${symbol} because BTC is pumping (${btcChangePct.toFixed(2)}%)`);
+                                continue;
+                            }
+                        }
+
+                        // 4. Global Kill Switch check
+                        if (statsService.checkGlobalKillSwitch()) {
                             continue;
                         }
                     }
 
                     await tradeExecutor.processSignal(finalSignal, currentPrice);
                     
-                    // Do not log to telegram or deduplicate if it's just a duplicate signal that got rejected
-                    // The tradeExecutor will handle telegram notifications for DCA success itself.
                     if (!activeTrade) {
                         await telegramNotifier.sendSignal(finalSignal, ctx);
                         dedupStore.recordAlert(symbol, finalSignal.strategyName, finalSignal.direction);
