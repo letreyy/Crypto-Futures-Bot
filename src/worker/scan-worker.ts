@@ -121,7 +121,7 @@ export class ScanWorker {
                     // Skip if this symbol+strategy combo just got stopped out
                     if (tradeExecutor.isOnSlCooldown(symbol, strategy.name)) continue;
 
-                    const candidate = strategy.execute(ctx);
+                    const candidate = await strategy.execute(ctx);
                     if (candidate) {
                         // HTF Direction filter — pass strategyName so mean-reversion strategies skip BTC filter
                         if (!passesDirectionFilter(ctx, candidate.direction, candidate.strategyName)) continue;

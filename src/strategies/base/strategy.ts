@@ -3,5 +3,5 @@ import { StrategyContext, StrategySignalCandidate } from '../../core/types/bot-t
 export interface Strategy {
   name: string;
   id: string;
-  execute(ctx: StrategyContext): StrategySignalCandidate | null;
+  execute(ctx: StrategyContext): StrategySignalCandidate | null | Promise<StrategySignalCandidate | null>;
 }

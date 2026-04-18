@@ -17,18 +17,30 @@ import { RsiDivergenceStrategy } from './modules/rsi-divergence.js';
 import { VolumeClimaxReversalStrategy } from './modules/volume-climax-reversal.js';
 import { EmaCrossMomentumStrategy } from './modules/ema-cross-momentum.js';
 import { BollingerBandReversalStrategy } from './modules/bb-reversal.js';
+import { EmaVwapPullbackStrategy } from './modules/new-strategies/ema-vwap-pullback.js';
+import { BollingerSqueezeStrategy } from './modules/new-strategies/bollinger-squeeze.js';
+import { RangeMeanReversionStrategy } from './modules/new-strategies/range-mean-reversion.js';
+import { FundingOiDivergenceStrategy } from './modules/new-strategies/funding-oi-divergence.js';
+import { EnhancedLiquiditySweepStrategy } from './modules/new-strategies/enhanced-liquidity-sweep.js';
 import { Strategy } from './base/strategy.js';
 
 // ═══════════════════════════════════════════════════════
-// ACTIVE STRATEGIES (Updated 2026-04-06)
+// ACTIVE STRATEGIES (Updated 2026-04-18)
 // ═══════════════════════════════════════════════════════
 export const strategyRegistry: Strategy[] = [
     // ─── The Winners (Consistent Profit) ───
     new OrderBlocksStrategy(),       // #1: Best performer — 75% WR, +246.95% PnL (as of Apr 6)
     new LiquiditySweepStrategy(),    // #2: Good R:R survivor — 75% WR, +170.02% PnL (as of Apr 6)
     
-    // ─── New Tests (Strict Filters) ───
-    new EmaCrossMomentumStrategy(),    // Trend-following (avoid catching falling knives)
+    // ─── Tested Core ───
+    new EmaCrossMomentumStrategy(),    // Trend-following
+
+    // ─── New Strategies (Added Apr 18) ───
+    new EmaVwapPullbackStrategy(),     // Strategy 1
+    new BollingerSqueezeStrategy(),    // Strategy 2
+    new RangeMeanReversionStrategy(),  // Strategy 3
+    new FundingOiDivergenceStrategy(), // Strategy 4
+    new EnhancedLiquiditySweepStrategy() // Strategy 5
 ];
 
 // ═══════════════════════════════════════════════════════
