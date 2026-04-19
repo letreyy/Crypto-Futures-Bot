@@ -8,7 +8,7 @@ import { Strategy } from '../../base/strategy.js';
  * Regime: SQUEEZE (TTM Squeeze definition)
  */
 export class BollingerSqueezeStrategy implements Strategy {
-    name = 'Bollinger Squeeze Breakout';
+    name = 'OP Bollinger Squeeze Breakout';
     id = 'bb-squeeze-breakout';
 
     execute(ctx: StrategyContext): StrategySignalCandidate | null {

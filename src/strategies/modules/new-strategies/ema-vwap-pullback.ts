@@ -10,7 +10,7 @@ import { binanceClient } from '../../../exchange/binance/binance-client.js';
  * Regime: TREND (ADX > 25)
  */
 export class EmaVwapPullbackStrategy implements Strategy {
-    name = 'EMA Ribbon + VWAP Pullback';
+    name = 'OP EMA Ribbon + VWAP Pullback';
     id = 'ema-vwap-pullback';
 
     async execute(ctx: StrategyContext): Promise<StrategySignalCandidate | null> {

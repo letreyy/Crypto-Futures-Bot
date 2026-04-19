@@ -9,7 +9,7 @@ import { binanceClient } from '../../../exchange/binance/binance-client.js';
  * Enters on capture of Equal Highs/Lows levels
  */
 export class EnhancedLiquiditySweepStrategy implements Strategy {
-    name = 'Enhanced Liquidity Sweep';
+    name = 'OP Enhanced Liquidity Sweep';
     id = 'enhanced-liquidity-sweep';
 
     async execute(ctx: StrategyContext): Promise<StrategySignalCandidate | null> {

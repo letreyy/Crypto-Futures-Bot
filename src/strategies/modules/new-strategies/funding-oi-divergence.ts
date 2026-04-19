@@ -10,7 +10,7 @@ import { binanceClient } from '../../../exchange/binance/binance-client.js';
  * Identifies sentiment extremes (overleaveraged longs/shorts)
  */
 export class FundingOiDivergenceStrategy implements Strategy {
-    name = 'Funding + OI Divergence';
+    name = 'OP Funding + OI Divergence';
     id = 'funding-oi-divergence';
 
     async execute(ctx: StrategyContext): Promise<StrategySignalCandidate | null> {

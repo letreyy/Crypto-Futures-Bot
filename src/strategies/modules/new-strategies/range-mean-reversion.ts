@@ -10,7 +10,7 @@ import { binanceClient } from '../../../exchange/binance/binance-client.js';
  * Regime: RANGE
  */
 export class RangeMeanReversionStrategy implements Strategy {
-    name = 'Range Mean-Reversion';
+    name = 'OP Range Mean-Reversion';
     id = 'range-mean-reversion';
 
     async execute(ctx: StrategyContext): Promise<StrategySignalCandidate | null> {
