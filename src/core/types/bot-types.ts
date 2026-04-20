@@ -64,6 +64,13 @@ export interface StrategyContext {
   timeframe: string;
   candles: Candle[];
   candles15m?: Candle[];
+  h1Candles?: Candle[]; // Cached 1h candles (avoid refetching per strategy)
+  h1Indicators?: {
+    ema50: number;
+    ema200: number;
+    rsi: number;
+    adx: number;
+  };
   indicators: IndicatorSnapshot;
   prevIndicators: IndicatorSnapshot;
   regime: MarketRegime;
@@ -74,6 +81,7 @@ export interface StrategyContext {
     price: number;
     ema200: number;
     trend: 'BULLISH' | 'BEARISH';
+    atrPct: number; // BTC 15m ATR as % — for volatility circuit breaker
   };
 }
 

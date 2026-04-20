@@ -2,7 +2,6 @@ import { StrategyContext, StrategySignalCandidate } from '../../../core/types/bo
 import { SignalDirection, MarketRegimeType } from '../../../core/constants/enums.js';
 import { Strategy } from '../../base/strategy.js';
 import { TechnicalIndicators } from '../../../market/indicators/indicator-engine.js';
-import { binanceClient } from '../../../exchange/binance/binance-client.js';
 
 /**
  * 1. EMA Ribbon + VWAP Pullback
@@ -13,46 +12,34 @@ export class EmaVwapPullbackStrategy implements Strategy {
     name = 'OP EMA Ribbon + VWAP Pullback';
     id = 'ema-vwap-pullback';
 
-    async execute(ctx: StrategyContext): Promise<StrategySignalCandidate | null> {
-        const { indicators, candles, regime, symbol } = ctx;
+    execute(ctx: StrategyContext): StrategySignalCandidate | null {
+        const { indicators, candles, regime } = ctx;
         const last = candles[candles.length - 1];
         const prev = candles[candles.length - 2];
 
         if (regime.type !== MarketRegimeType.TREND || indicators.adx < 25) return null;
 
         const ema9 = TechnicalIndicators.ema(candles.map(c => c.close), 9);
-        const ema21 = indicators.emaRibbon[2]; 
+        const ema21 = indicators.emaRibbon[2];
         const ema50 = indicators.ema50;
 
-        let h1Trend = false;
-        try {
-            const h1Candles = await binanceClient.getKlines(symbol, '1h', 200);
-            if (h1Candles && h1Candles.length >= 200) {
-                const h1Closes = h1Candles.map(c => c.close);
-                const h1Ema50 = TechnicalIndicators.ema(h1Closes, 50);
-                const h1Ema200 = TechnicalIndicators.ema(h1Closes, 200);
-                
-                if (last.close > ema50) {
-                    h1Trend = h1Ema50 > h1Ema200;
-                } else {
-                    h1Trend = h1Ema50 < h1Ema200;
-                }
-            }
-        } catch (e) {
-            return null;
-        }
+        // Use pre-fetched h1 context instead of fetching per strategy per symbol
+        if (!ctx.h1Indicators) return null;
+        const { ema50: h1Ema50, ema200: h1Ema200 } = ctx.h1Indicators;
 
-        if (!h1Trend) return null;
+        const htfBull = h1Ema50 > h1Ema200;
+        const htfBear = h1Ema50 < h1Ema200;
 
-        if (ema9 > ema21 && ema21 > ema50 && last.close > indicators.vwap) {
+        // ─── LONG ───
+        if (ema9 > ema21 && ema21 > ema50 && last.close > indicators.vwap && htfBull) {
             const lookback = candles.slice(-5, -1);
             const touchedEma21 = lookback.some(c => c.low <= ema21);
             if (!touchedEma21) return null;
 
-            const isBullishEngulfing = last.close > prev.open && last.open < prev.close && last.close > last.open;
             const body = Math.abs(last.close - last.open);
-            const lowerWick = last.open > last.close ? last.low - last.close : last.low - last.open;
-            const isPinBar = Math.abs(lowerWick) >= 2 * body;
+            const lowerWick = Math.min(last.open, last.close) - last.low;
+            const isBullishEngulfing = last.close > prev.open && last.open < prev.close && last.close > last.open;
+            const isPinBar = body > 0 && lowerWick >= 2 * body && last.close > last.open;
 
             if (!isBullishEngulfing && !isPinBar) return null;
 
@@ -74,15 +61,16 @@ export class EmaVwapPullbackStrategy implements Strategy {
             }
         }
 
-        if (ema9 < ema21 && ema21 < ema50 && last.close < indicators.vwap) {
+        // ─── SHORT ───
+        if (ema9 < ema21 && ema21 < ema50 && last.close < indicators.vwap && htfBear) {
             const lookback = candles.slice(-5, -1);
             const touchedEma21 = lookback.some(c => c.high >= ema21);
             if (!touchedEma21) return null;
 
-            const isBearishEngulfing = last.close < prev.open && last.open > prev.close && last.close < last.open;
             const body = Math.abs(last.close - last.open);
-            const upperWick = last.close > last.open ? last.high - last.close : last.high - last.open;
-            const isPinBar = Math.abs(upperWick) >= 2 * body;
+            const upperWick = last.high - Math.max(last.open, last.close);
+            const isBearishEngulfing = last.close < prev.open && last.open > prev.close && last.close < last.open;
+            const isPinBar = body > 0 && upperWick >= 2 * body && last.close < last.open;
 
             if (!isBearishEngulfing && !isPinBar) return null;
 

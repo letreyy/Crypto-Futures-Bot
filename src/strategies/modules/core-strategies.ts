@@ -84,8 +84,9 @@ export class LiquiditySweepStrategy implements Strategy {
         if (last.volume <= indicators.volumeSma * 1.2) return null;
 
         if (liquidity.sweptLow && liquidity.reclaimedLevel && liquidity.localRangeLow) {
-            // Trend filter: Don't sweep long if EMA20 is clearly below EMA200
-            if (indicators.ema20 < indicators.ema200 * 0.99) return null;
+            // Liquidity sweep IS a counter-trend trade — don't require price > EMA200.
+            // Just reject if EMA20 is catastrophically below EMA200 (deep bear, sweeps fail).
+            if (indicators.ema20 < indicators.ema200 * 0.95) return null;
             if (indicators.rsi > 65) return null; // Already bounced too much
 
             // SL behind the wick that swept (the absolute low of recent candles)
@@ -111,7 +112,7 @@ export class LiquiditySweepStrategy implements Strategy {
             };
         }
         if (liquidity.sweptHigh && liquidity.reclaimedLevel && liquidity.localRangeHigh) {
-            if (indicators.ema20 > indicators.ema200 * 1.01) return null;
+            if (indicators.ema20 > indicators.ema200 * 1.05) return null;
             if (indicators.rsi < 35) return null;
 
             // SL behind the wick that swept (the absolute high of recent candles)

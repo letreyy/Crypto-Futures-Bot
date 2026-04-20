@@ -8,6 +8,7 @@ import { Strategy } from '../strategies/base/strategy.js';
 import { universeLoader } from '../market/universe/universe-loader.js';
 import { COMBO_DEFINITIONS } from '../strategies/combination-engine.js';
 import { statsService } from '../stats/stats-service.js';
+import { getTpWeights } from '../risk/risk-engine.js';
 
 interface PaperTrade {
     id: string;
@@ -27,6 +28,8 @@ interface PaperTrade {
     expireAt: number;        // Timestamp (ms) when a pending order should be cancelled
     orderType: 'MARKET' | 'LIMIT';
     dcaCount: number;        // How many times this position has been averaged down (max 1 usually)
+    tpWeights: number[];     // Regime-adaptive TP portions (sum = 1)
+    limitSignal?: FinalSignal; // Cached original signal — used to fallback to market fill if limit expires unfilled
 }
 
 interface LeverageConfig {
@@ -418,9 +421,8 @@ ${list}
 
                 if (!tpReached) break;
 
-                // 40% for TP1 and TP2, index 0 and 1
-                // 10% for TP3 and TP4, index 2 and 3
-                const portion = trade.tpHit < 2 ? 0.40 : 0.10;
+                // Regime-adaptive portion per TP (TREND leaves more runner, RANGE locks faster)
+                const portion = trade.tpWeights[trade.tpHit] ?? (trade.tpHit < 2 ? 0.40 : 0.10);
                 const tpPnlRaw = isLong
                     ? (nextTp - trade.entryPrice) / trade.entryPrice
                     : (trade.entryPrice - nextTp) / trade.entryPrice;
@@ -434,18 +436,43 @@ ${list}
                 trade.history.push(`${getTimestamp()} TP${trade.tpHit} hit (+${tpPnl.toFixed(2)}%)`);
 
                 // Move trailing stop loss
-                if (trade.tpHit === 1) { // Hit TP1 -> move SL to Break-Even
-                    trade.sl = trade.entryPrice;
-                    trade.history.push(`${getTimestamp()} SL moved to BE (${trade.sl.toFixed(4)})`);
-                } else if (trade.tpHit === 2) { // Hit TP2 (Main) -> move SL to TP1
+                if (trade.tpHit === 1) { // Hit TP1 -> move SL to BE + small buffer (cover fees)
+                    const feeBuffer = trade.entryPrice * 0.0008; // ~0.08% covers taker fees both sides
+                    trade.sl = isLong ? trade.entryPrice + feeBuffer : trade.entryPrice - feeBuffer;
+                    trade.history.push(`${getTimestamp()} SL moved to BE+ (${trade.sl.toFixed(4)})`);
+                } else if (trade.tpHit === 2) { // Hit TP2 -> move SL to TP1 (lock profit)
                     trade.sl = trade.tp[0];
                     trade.history.push(`${getTimestamp()} SL moved to TP1 (${trade.sl.toFixed(4)})`);
-                } else if (trade.tpHit === 3) { // Hit TP3 -> move SL to TP2
-                    trade.sl = trade.tp[1];
-                    trade.history.push(`${getTimestamp()} SL moved to TP2 (${trade.sl.toFixed(4)})`);
+                } else if (trade.tpHit === 3) { // Hit TP3 -> ATR trail from current price, never worse than TP2
+                    const atr = ctx.indicators.atr;
+                    const trail = isLong ? lastCandle.close - atr : lastCandle.close + atr;
+                    trade.sl = isLong ? Math.max(trade.tp[1], trail) : Math.min(trade.tp[1], trail);
+                    trade.history.push(`${getTimestamp()} SL trailing at ${trade.sl.toFixed(4)}`);
                 }
 
                 logger.info(`[TP${trade.tpHit} HIT] ${trade.symbol} ${trade.direction} | +${tpPnl.toFixed(2)}% (${(portion * 100).toFixed(0)}%) | Remaining: ${(trade.remainingPortion * 100).toFixed(0)}%`);
+            }
+
+            // ─── Time-based stop: stagnant trade exit ───
+            // If after 20 candles (5 hours on 15m) we're still at 0 TPs and close is within ±0.3R of entry → close flat.
+            const entryCandle = trade.timestamp;
+            const minutesOpen = (lastCandle.timestamp - entryCandle) / 60000;
+            if (trade.status === 'ACTIVE' && trade.tpHit === 0 && minutesOpen > 5 * 60) {
+                const riskDist = Math.abs(trade.entryPrice - trade.sl);
+                const drift = Math.abs(lastCandle.close - trade.entryPrice);
+                if (riskDist > 0 && drift < riskDist * 0.3) {
+                    const flatPnlRaw = isLong
+                        ? (lastCandle.close - trade.entryPrice) / trade.entryPrice
+                        : (trade.entryPrice - lastCandle.close) / trade.entryPrice;
+                    const flatPnl = flatPnlRaw * trade.remainingPortion * trade.leverage * 100;
+                    const totalPnl = trade.accumulatedPnl + flatPnl;
+                    this.todaysPnlPercent += flatPnl;
+                    this.recordStrategyResult(trade.strategyName, totalPnl);
+                    trade.history.push(`${getTimestamp()} Time-stop flat exit (${flatPnl.toFixed(2)}%)`);
+                    logger.info(`[TIME-STOP] ${trade.symbol} ${trade.direction} stagnant for ${Math.round(minutesOpen)}m | PnL: ${flatPnl.toFixed(2)}%`);
+                    telegramNotifier.sendTradeResult(trade.symbol, trade.direction, totalPnl, this.todaysPnlPercent, trade.history);
+                    return false;
+                }
             }
 
             // All 4 TPs hit — position fully closed
@@ -517,6 +544,12 @@ ${list}
                     existingTrade.tpHit = 0;
                     existingTrade.remainingPortion = 1.0;
                     existingTrade.dcaCount++;
+                    existingTrade.tpWeights = getTpWeights(signal.regime.type);
+                    // DCA doubles position: effective risk per new-ladder-TP doubles too.
+                    // Compensate by halving leverage so the combined SL distance still maps to the
+                    // original targetRiskPercent of account (otherwise a 2nd leg at the same lev
+                    // turns a 1% target risk into ~2%).
+                    existingTrade.leverage = Math.max(1, Math.round(existingTrade.leverage / 2));
 
                     const logMsg = `${getTimestamp()} DCA Averaged: Old ${oldEntry.toFixed(4)} -> New Avg ${newAverageEntry.toFixed(4)} via ${signal.strategyName}`;
                     existingTrade.history.push(logMsg);
@@ -553,7 +586,9 @@ ${list}
             status: status,
             expireAt: signal.timestamp + (signal.expireMinutes * 60 * 1000),
             orderType: signal.orderType || 'MARKET',
-            dcaCount: 0
+            dcaCount: 0,
+            tpWeights: getTpWeights(signal.regime.type),
+            limitSignal: status === 'PENDING' && signal.strategyName === 'Liquidity Sweep' ? signal : undefined
         });
     }
 
@@ -591,7 +626,7 @@ ${list}
             logger.info(`[LIVE] Entry order placed: ${entryOrder.id}`);
 
             const tps = signal.levels.tp;
-            const tpPortions = [0.40, 0.40, 0.10, 0.10];
+            const tpPortions = getTpWeights(signal.regime.type);
             const closeDirection = direction === 'buy' ? 'sell' : 'buy';
 
             for (let i = 0; i < tps.length; i++) {

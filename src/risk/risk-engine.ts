@@ -1,14 +1,33 @@
-import { SignalDirection } from '../core/constants/enums.js';
+import { MarketRegimeType, SignalDirection } from '../core/constants/enums.js';
 import { StrategyContext, SignalLevels, StrategySignalCandidate } from '../core/types/bot-types.js';
 
-const MIN_RISK_PERCENT = 0.35; // Minimum SL distance: 0.35% (Noise floor)
-const MAX_RISK_PERCENT = 1.8;  // Maximum SL distance: 1.8% (Risk cap)
+// ATR-scaled risk corridor — derived per-signal from volatility (see deriveRiskCorridor).
+// Absolute caps guard against pathological ATR readings.
+const ABS_MIN_RISK_PERCENT = 0.3;
+const ABS_MAX_RISK_PERCENT = 3.5;
 
-// Weights for each TP in the ladder (40%, 40%, 10%, 10%)
-const TP_WEIGHTS = [0.40, 0.40, 0.10, 0.10];
+// Regime-adaptive TP ladder weights. Keys must match MarketRegimeType values.
+const TP_WEIGHTS_BY_REGIME: Record<string, number[]> = {
+    TREND: [0.40, 0.25, 0.20, 0.15],              // let runners run
+    RANGE: [0.50, 0.35, 0.10, 0.05],              // lock profit early
+    VOLATILITY_EXPANSION: [0.30, 0.30, 0.25, 0.15], // balanced
+    PANIC: [0.50, 0.30, 0.15, 0.05],              // PANIC = exit fast
+};
+const DEFAULT_TP_WEIGHTS = [0.40, 0.40, 0.10, 0.10];
+
+export function getTpWeights(regimeType: MarketRegimeType): number[] {
+    return TP_WEIGHTS_BY_REGIME[regimeType] || DEFAULT_TP_WEIGHTS;
+}
+
+function deriveRiskCorridor(atrPct: number): { min: number; max: number } {
+    // atrPct is ATR as % of price. On BTC 15m ≈ 0.2-0.4%, on alts up to 1.5%+.
+    const min = Math.min(0.6, Math.max(ABS_MIN_RISK_PERCENT, 0.2 + atrPct * 0.5));
+    const max = Math.min(ABS_MAX_RISK_PERCENT, Math.max(1.5, 1.8 + atrPct));
+    return { min, max };
+}
 
 export class RiskEngine {
-    static calculateLevels(ctx: StrategyContext, candidate: StrategySignalCandidate): SignalLevels {
+    static calculateLevels(ctx: StrategyContext, candidate: StrategySignalCandidate): SignalLevels | null {
         const { direction, suggestedEntry, suggestedTarget, suggestedSl } = candidate;
         const last = ctx.candles[ctx.candles.length - 1];
         const atr = ctx.indicators.atr;
@@ -24,15 +43,17 @@ export class RiskEngine {
             sl = Math.max(ctx.liquidity.localRangeHigh || (entry + 2 * atr), entry + 1.5 * atr);
         }
 
-        // ─── Step 2: Enforce Risk Corridor (0.35% - 1.8%) ───
+        // ─── Step 2: Enforce ATR-scaled Risk Corridor ───
+        const atrPct = (atr / entry) * 100;
+        const { min: minRiskPct, max: maxRiskPct } = deriveRiskCorridor(atrPct);
         let risk = Math.abs(entry - sl);
         let currentRiskPct = (risk / entry) * 100;
 
-        if (currentRiskPct > MAX_RISK_PERCENT) {
-            risk = entry * (MAX_RISK_PERCENT / 100);
+        if (currentRiskPct > maxRiskPct) {
+            risk = entry * (maxRiskPct / 100);
             sl = direction === SignalDirection.LONG ? entry - risk : entry + risk;
-        } else if (currentRiskPct < MIN_RISK_PERCENT) {
-            risk = entry * (MIN_RISK_PERCENT / 100);
+        } else if (currentRiskPct < minRiskPct) {
+            risk = entry * (minRiskPct / 100);
             sl = direction === SignalDirection.LONG ? entry - risk : entry + risk;
         }
 
@@ -70,14 +91,14 @@ export class RiskEngine {
         }
 
         // Build the 4-step TP ladder around the primary target
-        let tp: number[] = [];
+        const tp: number[] = [];
         if (direction === SignalDirection.LONG) {
             // TP1: Scale out halfway to structural target (safeguard)
             tp[0] = entry + (primaryTarget - entry) * 0.5;
             // TP2: Exact primary structural target (e.g., liquidity sweep zone)
             tp[1] = primaryTarget;
             // TP3: Structural target + 1 ATR extension (trending push)
-            tp[2] = Math.max(primaryTarget + atr, entry + risk * 2.5); 
+            tp[2] = Math.max(primaryTarget + atr, entry + risk * 2.5);
             // TP4: Ultimate Runner (Target + 2 ATR or baseline 3.5R)
             tp[3] = Math.max(primaryTarget + 2 * atr, entry + risk * 3.5);
         } else {
@@ -91,21 +112,27 @@ export class RiskEngine {
             tp[3] = Math.min(primaryTarget - 2 * atr, entry - risk * 3.5);
         }
 
-        // ─── SANITY CHECK: All TPs must be on the correct side of entry ───
-        if (direction === SignalDirection.LONG) {
-            tp = tp.map((t, i) => t > entry ? t : entry + risk * (1.5 + i * 0.5));
-        } else {
-            tp = tp.map((t, i) => t < entry ? t : entry - risk * (1.5 + i * 0.5));
+        // ─── INVARIANT: every TP must lie on the correct side of entry AND be strictly monotonic ───
+        // If we can't build a valid ladder from structure, reject the signal rather than fabricating
+        // targets detached from the market — caller will skip it.
+        const isLong = direction === SignalDirection.LONG;
+        for (let i = 0; i < tp.length; i++) {
+            if (isLong && tp[i] <= entry) return null;
+            if (!isLong && tp[i] >= entry) return null;
+            if (i > 0) {
+                if (isLong && tp[i] <= tp[i - 1]) return null;
+                if (!isLong && tp[i] >= tp[i - 1]) return null;
+            }
         }
-
 
         // Just map standard R:R values for telemetry purposes (Risk factor equivalent)
         const rrLadder = tp.map(t => Math.abs(t - entry) / risk);
 
         const riskPercent = (risk / entry) * 100;
 
-        // ─── Step 4: Dynamic R:R = weighted average of actual structural TPs ───
-        const weightedRR = rrLadder.reduce((sum, current_rr, i) => sum + current_rr * TP_WEIGHTS[i], 0);
+        // ─── Step 4: Regime-adaptive weighted R:R ───
+        const weights = getTpWeights(ctx.regime.type);
+        const weightedRR = rrLadder.reduce((sum, current_rr, i) => sum + current_rr * weights[i], 0);
 
         return {
             entry,

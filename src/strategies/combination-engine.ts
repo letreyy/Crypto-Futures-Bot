@@ -28,61 +28,41 @@ interface ComboDefinition {
 }
 
 export const COMBO_DEFINITIONS: ComboDefinition[] = [
+    // ─── SMC Institutional Entry ───
+    // OB retest + equal-level sweep = classic smart-money setup
     {
-        name: 'Liquidity Trap Reversal',
-        id: 'combo-liquidity-trap',
-        requiredStrategies: ['Liquidity Sweep', 'Delta Divergence', 'Breakout Failure'],
+        name: 'Institutional Entry',
+        id: 'combo-institutional-entry',
+        requiredStrategies: ['Order Block Retest', 'Liquidity Sweep', 'OP Enhanced Liquidity Sweep'],
+        minMatch: 2,
+        confidence: 90,
+        reasons: ['COMBO: Institutional entry', 'Order block + liquidity sweep aligned', 'High-probability SMC setup'],
+        expireMinutes: 45
+    },
+    // ─── Squeeze + Trend Pullback ───
+    // Bollinger breakout in direction of EMA/VWAP pullback trend
+    {
+        name: 'Squeeze Trend Push',
+        id: 'combo-squeeze-trend-push',
+        requiredStrategies: ['OP Bollinger Squeeze Breakout', 'OP EMA Ribbon + VWAP Pullback', 'EMA Cross Momentum'],
         minMatch: 2,
         contextFilter: (ctx) => {
             const last = ctx.candles[ctx.candles.length - 1];
-            return last.volume > ctx.indicators.volumeSma * 1.5; // volume spike required
-        },
-        confidence: 90,
-        reasons: ['COMBO: Liquidity trap reversal', 'Multiple reversal signals aligned', 'Volume spike confirms trap'],
-        expireMinutes: 25
-    },
-    {
-        name: 'Trend Continuity',
-        id: 'combo-trend-continuity',
-        requiredStrategies: ['Order Flow Imbalance', 'EMA Ribbon Scalp'],
-        minMatch: 2,
-        contextFilter: (_ctx) => {
-            return true;
+            return last.volume > ctx.indicators.volumeSma * 1.3;
         },
         confidence: 88,
-        reasons: ['COMBO: Trend continuation', 'Order flow + ribbon alignment', 'Strong trend momentum'],
-        expireMinutes: 30
+        reasons: ['COMBO: Squeeze release into trend', 'Volatility expansion + trend alignment', 'Multi-strategy momentum confirmation'],
+        expireMinutes: 45
     },
+    // ─── Funding Extreme Reversal ───
     {
-        name: 'VWAP Reversion Pro',
-        id: 'combo-vwap-reversion',
-        requiredStrategies: ['VWAP Reversion', 'VWAP Bands', 'Absorption'],
+        name: 'Funding Extreme Reversal',
+        id: 'combo-funding-extreme',
+        requiredStrategies: ['OP Funding + OI Divergence', 'OP Range Mean-Reversion', 'OP Enhanced Liquidity Sweep'],
         minMatch: 2,
         confidence: 87,
-        reasons: ['COMBO: VWAP reversion with absorption', 'Price extended from VWAP', 'Volume absorption at extreme'],
-        expireMinutes: 25
-    },
-    {
-        name: 'Breakout With Fuel',
-        id: 'combo-breakout-fuel',
-        requiredStrategies: ['Bos/Choch', 'OI Divergence', 'Fair Value Gap'],
-        minMatch: 2,
-        contextFilter: (ctx) => {
-            const last = ctx.candles[ctx.candles.length - 1];
-            return last.volume > ctx.indicators.volumeSma * 1.5;
-        },
-        confidence: 88,
-        reasons: ['COMBO: Breakout with OI fuel', 'Structure break + momentum', 'OI expanding = new money entering'],
-        expireMinutes: 30
-    },
-    {
-        name: 'Funding Trap',
-        id: 'combo-funding-trap',
-        requiredStrategies: ['Funding Reversal', 'OI Divergence', 'Breakout Failure'],
-        minMatch: 2,
-        confidence: 86,
-        reasons: ['COMBO: Funding crowd trap', 'Extreme funding + crowd positioning', 'Smart money contra-signal'],
-        expireMinutes: 30
+        reasons: ['COMBO: Funding extreme reversal', 'Sentiment + technical confluence', 'Crowd-trap contrarian signal'],
+        expireMinutes: 90
     }
 ];
 

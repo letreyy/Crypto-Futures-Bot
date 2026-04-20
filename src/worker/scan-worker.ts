@@ -11,7 +11,7 @@ import { telegramNotifier } from '../notifications/telegram/telegram-notifier.js
 import { tradeExecutor } from '../trading/trade-executor.js';
 import { dedupStore } from '../state/dedup-store.js';
 import { config } from '../config/index.js';
-import { FinalSignal, StrategyContext, StrategySignalCandidate } from '../core/types/bot-types.js';
+import { Candle, FinalSignal, StrategyContext, StrategySignalCandidate } from '../core/types/bot-types.js';
 import { passesGlobalFilters, passesDirectionFilter } from '../strategies/global-filters.js';
 import { TimeFilters } from '../market/time-filters.js';
 import { CombinationEngine } from '../strategies/combination-engine.js';
@@ -20,6 +20,9 @@ import { TelemetryLogger } from './telemetry-logger.js';
 
 export class ScanWorker {
     private isRunning: boolean = false;
+    // 1h kline cache per symbol — refreshed every 10 minutes (1h candles don't change within 10m).
+    private h1Cache: Map<string, { ts: number; candles: Candle[] }> = new Map();
+    private readonly H1_CACHE_TTL_MS = 10 * 60 * 1000;
 
     async start() {
         this.isRunning = true;
@@ -45,18 +48,32 @@ export class ScanWorker {
     private async scan() {
         const topSymbols = await universeLoader.getTopSymbols();
 
-        let btcContext: { trend: 'BULLISH' | 'BEARISH'; price: number; ema200: number } | undefined;
+        let btcContext: { trend: 'BULLISH' | 'BEARISH'; price: number; ema200: number; atrPct: number } | undefined;
+        let btcVolatilityBlocked = false;
         try {
             // Fetch 1-hour candles for BTC for higher-timeframe global trend context
             const btcCandles = await binanceClient.getKlines('BTCUSDT', '1h', 250);
             if (btcCandles && btcCandles.length > 200) {
                 const btcInds = TechnicalIndicators.calculateSnapshot(btcCandles);
                 const btcPrice = btcCandles[btcCandles.length - 1].close;
+
+                // BTC 15m ATR% for volatility circuit breaker
+                const btc15m = await binanceClient.getKlines('BTCUSDT', '15m', 50);
+                const btcAtr15m = btc15m && btc15m.length >= 20 ? TechnicalIndicators.atr(btc15m, 14) : 0;
+                const btcAtrPct = btcAtr15m > 0 ? (btcAtr15m / btcPrice) * 100 : 0;
+
                 btcContext = {
                     trend: btcPrice > btcInds.ema200 ? 'BULLISH' : 'BEARISH',
                     price: btcPrice,
-                    ema200: btcInds.ema200
+                    ema200: btcInds.ema200,
+                    atrPct: btcAtrPct
                 };
+
+                // Circuit breaker: BTC 15m ATR > 1.2% = panic/news event, pause all new entries
+                if (btcAtrPct > 1.2) {
+                    btcVolatilityBlocked = true;
+                    logger.warn(`[BTC VOLATILITY CIRCUIT BREAKER] BTC 15m ATR = ${btcAtrPct.toFixed(2)}% — blocking new entries`);
+                }
             }
         } catch (err: any) {
             logger.warn('Failed to fetch BTC context, skipping global BTC filter', { error: err.message });
@@ -91,8 +108,32 @@ export class ScanWorker {
                     }
                 } catch {}
 
+                // ─── Fetch & cache 1h candles once per symbol per scan ───
+                let h1Candles: Candle[] | undefined;
+                let h1Indicators: { ema50: number; ema200: number; rsi: number; adx: number } | undefined;
+                try {
+                    const cached = this.h1Cache.get(symbol);
+                    if (cached && Date.now() - cached.ts < this.H1_CACHE_TTL_MS) {
+                        h1Candles = cached.candles;
+                    } else {
+                        h1Candles = await binanceClient.getKlines(symbol, '1h', 200);
+                        if (h1Candles && h1Candles.length >= 50) {
+                            this.h1Cache.set(symbol, { ts: Date.now(), candles: h1Candles });
+                        }
+                    }
+                    if (h1Candles && h1Candles.length >= 50) {
+                        const h1Closes = h1Candles.map(c => c.close);
+                        h1Indicators = {
+                            ema50: TechnicalIndicators.ema(h1Closes, 50),
+                            ema200: h1Closes.length >= 200 ? TechnicalIndicators.ema(h1Closes, 200) : TechnicalIndicators.ema(h1Closes, Math.min(h1Closes.length, 100)),
+                            rsi: TechnicalIndicators.rsi(h1Closes, 14),
+                            adx: TechnicalIndicators.adx(h1Candles, 14)
+                        };
+                    }
+                } catch {}
+
                 const ctx: StrategyContext = {
-                    symbol, timeframe: '15m', candles, indicators, prevIndicators, regime, liquidity, funding, openInterest, btcContext
+                    symbol, timeframe: '15m', candles, indicators, prevIndicators, regime, liquidity, funding, openInterest, btcContext, h1Candles, h1Indicators
                 };
 
                 await tradeExecutor.updatePaperTrades(ctx);
@@ -139,10 +180,16 @@ export class ScanWorker {
                 for (const candidate of allCandidates) {
                     const { score, label } = ScoringEngine.calculate(ctx, candidate);
                     const levels = RiskEngine.calculateLevels(ctx, candidate);
-                    
+
                     // NEW: Log ALL candidates to telemetry BEFORE any filters
-                    TelemetryLogger.log(symbol, candidate, levels, score);
-                    
+                    TelemetryLogger.log(symbol, candidate, levels ?? undefined, score);
+
+                    // Risk engine rejects signals where a valid TP ladder cannot be built from structure
+                    if (!levels) {
+                        logger.info(`[REJECTED INVALID LEVELS] ${symbol} ${candidate.strategyName}: structural target invalid`);
+                        continue;
+                    }
+
                     if (score >= config.bot.minSignalScore) {
                         if (!dedupStore.isCooldown(symbol, candidate.strategyName, candidate.direction)) {
                             const leverageSuggestion = tradeExecutor.calculateLeverage(levels.riskPercent);
@@ -189,6 +236,12 @@ export class ScanWorker {
 
                     // ─── Systemic Risk Filter (Max Concurrent Trades) ───
                     if (!activeTrade) {
+                        // 0. BTC volatility circuit breaker
+                        if (btcVolatilityBlocked) {
+                            logger.info(`[BTC VOL BREAKER] Skipping ${symbol} — BTC 15m ATR too high`);
+                            continue;
+                        }
+
                         // 1. Total capacity check
                         const activeCount = tradeExecutor.getActiveAndPendingCount();
                         if (activeCount >= config.bot.maxConcurrentTrades) {
@@ -203,18 +256,30 @@ export class ScanWorker {
                             logger.info(`[MAX DIRECTIONAL REACHED] Ignoring ${symbol} ${finalSignal.direction}. Already have ${directionalCount}/${MAX_DIRECTIONAL}`);
                             continue;
                         }
-                        
+
+                        // 2a. BTC-correlation exposure: altcoins fight BTC direction rarely succeed.
+                        // If BTC trend opposes signal direction AND we already have 2 trades in signal direction → reject.
+                        if (btcContext && symbol !== 'BTCUSDT') {
+                            const opposesBtc = (finalSignal.direction === 'LONG' && btcContext.trend === 'BEARISH')
+                                || (finalSignal.direction === 'SHORT' && btcContext.trend === 'BULLISH');
+                            if (opposesBtc && directionalCount >= 2) {
+                                logger.info(`[CORRELATION FILTER] ${symbol} ${finalSignal.direction} opposes BTC trend with ${directionalCount} same-direction trades open`);
+                                continue;
+                            }
+                        }
+
                         // 3. BTC Momentum check (don't Long if BTC is currently dumping, even if price > EMA200)
                         if (btcContext) {
                             const btcKlines = await binanceClient.getKlines('BTCUSDT', '15m', 5);
                             const lastBtc = btcKlines[btcKlines.length - 1];
                             const btcChangePct = (lastBtc.close - lastBtc.open) / lastBtc.open * 100;
-                            
-                            if (finalSignal.direction === 'LONG' && btcChangePct < -0.3) {
+
+                            // Raised threshold: 0.3% is too tight (normal 15m noise kills signals).
+                            if (finalSignal.direction === 'LONG' && btcChangePct < -0.5) {
                                 logger.info(`[SHARP BTC DROP] Rejecting LONG on ${symbol} because BTC is dropping (${btcChangePct.toFixed(2)}%)`);
                                 continue;
                             }
-                            if (finalSignal.direction === 'SHORT' && btcChangePct > 0.3) {
+                            if (finalSignal.direction === 'SHORT' && btcChangePct > 0.5) {
                                 logger.info(`[SHARP BTC PUMP] Rejecting SHORT on ${symbol} because BTC is pumping (${btcChangePct.toFixed(2)}%)`);
                                 continue;
                             }

@@ -18,11 +18,13 @@ export interface FilterConfig {
 
 const DEFAULT_FILTER_CONFIG: FilterConfig = {
     htfTrendEnabled: true,
-    volatilityMinAtrPct: 0.08,   // Below 0.08% ATR = too flat, don't trade
-    volatilityMaxAtrPct: 5.0,    // Above 5% ATR = too volatile / likely manipulated
+    volatilityMinAtrPct: 0.15,   // Raised from 0.08% — below 0.15% = chop, not worth fees
+    volatilityMaxAtrPct: 4.0,    // Lowered from 5% — >4% = news/liquidation cascade
     sessionEnabled: true,
-    deadHoursUTC: [1, 2],        // 01:00-02:59 UTC = truly dead zone (compressed from 4h to 2h)
-    btcFilterEnabled: true,      // Reject altcoin signals that fight the BTC trend
+    // Dead zones: late-Asian lull (23-03 UTC) has worst WR for most strategies.
+    // Widened from [1,2] to cover documented low-liquidity window.
+    deadHoursUTC: [23, 0, 1, 2, 3],
+    btcFilterEnabled: true,
 };
 
 export const filterConfig: FilterConfig = { ...DEFAULT_FILTER_CONFIG };
@@ -67,6 +69,12 @@ const MEAN_REVERSION_STRATEGIES = new Set([
     'RSI Divergence',
     'Volume Climax Reversal',
     'Bollinger Band Reversal',
+    'Liquidity Sweep',
+    'OP Enhanced Liquidity Sweep',
+    'OP Range Mean-Reversion',
+    'OP Funding + OI Divergence',
+    'Funding Extreme Reversal',
+    'Institutional Entry',
 ]);
 
 /**

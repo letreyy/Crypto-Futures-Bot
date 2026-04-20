@@ -25,8 +25,8 @@ export const config = {
     universeRefreshMinutes: parseInt(process.env.UNIVERSE_REFRESH_MINUTES || '60'),
     topN: parseInt(process.env.TOP_N_SYMBOLS || '50'),
     minSignalScore: parseInt(process.env.MIN_SIGNAL_SCORE || '80'),
-    minProfitLeveraged: parseFloat(process.env.MIN_PROFIT_LEVERAGED || '1.5'), // minimum R:R ratio
-    minTpDistancePct: parseFloat(process.env.MIN_TP_DISTANCE_PCT || '0.5'),
+    minProfitLeveraged: parseFloat(process.env.MIN_PROFIT_LEVERAGED || '1.6'), // minimum R:R ratio
+    minTpDistancePct: parseFloat(process.env.MIN_TP_DISTANCE_PCT || '0.8'), // raised from 0.5% — fees+slippage erode smaller moves
     targetRiskPercent: parseFloat(process.env.TARGET_RISK_PERCENT || '1.0'),
     maxConcurrentTrades: parseInt(process.env.MAX_CONCURRENT_TRADES || '10'),
     klinesLimit: 600

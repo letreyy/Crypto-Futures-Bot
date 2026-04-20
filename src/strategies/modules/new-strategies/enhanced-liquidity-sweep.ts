@@ -1,55 +1,56 @@
 import { StrategyContext, StrategySignalCandidate } from '../../../core/types/bot-types.js';
 import { SignalDirection } from '../../../core/constants/enums.js';
 import { Strategy } from '../../base/strategy.js';
-import { binanceClient } from '../../../exchange/binance/binance-client.js';
 
 /**
- * 5. Liquidity Sweep (Smart Money Concept)
- * Type: Liquidity grab / False Breakout
- * Enters on capture of Equal Highs/Lows levels
+ * 5. Enhanced Liquidity Sweep (Smart Money Concept)
+ * Captures Equal Highs/Lows level sweeps with volume reclaim.
  */
 export class EnhancedLiquiditySweepStrategy implements Strategy {
     name = 'OP Enhanced Liquidity Sweep';
     id = 'enhanced-liquidity-sweep';
 
-    async execute(ctx: StrategyContext): Promise<StrategySignalCandidate | null> {
-        const { indicators, candles, symbol } = ctx;
-        if (candles.length < 50) return null;
+    execute(ctx: StrategyContext): StrategySignalCandidate | null {
+        const { indicators, candles } = ctx;
+        if (candles.length < 50 || !ctx.h1Candles || ctx.h1Candles.length < 30) return null;
 
         const last = candles[candles.length - 1];
+        const h1 = ctx.h1Candles;
 
-        let eqLows: number | null = null;
-        let eqHighs: number | null = null;
-        try {
-            const h1Candles = await binanceClient.getKlines(symbol, '1h', 100);
-            if (h1Candles) {
-                const lows = h1Candles.map(c => c.low);
-                for (let i = 0; i < lows.length; i++) {
-                    for (let j = i + 5; j < lows.length; j++) {
-                        if (Math.abs(lows[i] - lows[j]) / lows[i] < 0.002) {
-                            eqLows = (lows[i] + lows[j]) / 2;
-                            break;
-                        }
+        // Build sorted arrays of lows/highs in O(n), find cluster centres.
+        // "Equal" = within 0.15% of each other (tighter than original 0.2%).
+        const TOL = 0.0015;
+
+        const findCluster = (values: number[]): number | null => {
+            // Bucket similar values; return the cluster with highest frequency.
+            const buckets: { price: number; count: number; members: number[] }[] = [];
+            for (const v of values) {
+                let placed = false;
+                for (const b of buckets) {
+                    if (Math.abs(v - b.price) / b.price < TOL) {
+                        b.members.push(v);
+                        b.price = b.members.reduce((a, c) => a + c, 0) / b.members.length;
+                        b.count++;
+                        placed = true;
+                        break;
                     }
-                    if (eqLows) break;
                 }
-                const highs = h1Candles.map(c => c.high);
-                for (let i = 0; i < highs.length; i++) {
-                    for (let j = i + 5; j < highs.length; j++) {
-                        if (Math.abs(highs[i] - highs[j]) / highs[i] < 0.002) {
-                            eqHighs = (highs[i] + highs[j]) / 2;
-                            break;
-                        }
-                    }
-                    if (eqHighs) break;
-                }
+                if (!placed) buckets.push({ price: v, count: 1, members: [v] });
             }
-        } catch (e) { return null; }
+            buckets.sort((a, b) => b.count - a.count);
+            const top = buckets[0];
+            return top && top.count >= 2 ? top.price : null;
+        };
 
+        const eqLows = findCluster(h1.map(c => c.low));
+        const eqHighs = findCluster(h1.map(c => c.high));
+
+        // ─── LONG: sweep of equal lows + reclaim ───
         if (eqLows && last.low < eqLows * (1 - 0.003)) {
             if (last.close > eqLows && last.volume >= indicators.volumeSma * 1.5) {
-                const deltaCurrent = (last.close - last.open) / (last.high - last.low);
-                if (deltaCurrent > 0) {
+                const range = last.high - last.low;
+                const deltaRatio = range > 0 ? (last.close - last.open) / range : 0;
+                if (deltaRatio > 0.3) {
                     return {
                         strategyName: this.name,
                         direction: SignalDirection.LONG,
@@ -57,9 +58,9 @@ export class EnhancedLiquiditySweepStrategy implements Strategy {
                         suggestedSl: last.low - (indicators.atr * 0.2),
                         confidence: 88,
                         reasons: [
-                            'Equal Lows liquidity pool identifies on 1h',
-                            'Aggressive sweep (>0.3%) with volume reclaim',
-                            'Market structure maintained (Reclaim of structural low)'
+                            `Equal Lows liquidity pool (${eqLows.toFixed(4)}) on 1h swept`,
+                            'Volume reclaim (≥1.5x avg)',
+                            'Bullish close with strong delta'
                         ],
                         expireMinutes: 90
                     };
@@ -67,10 +68,12 @@ export class EnhancedLiquiditySweepStrategy implements Strategy {
             }
         }
 
+        // ─── SHORT: sweep of equal highs + reclaim ───
         if (eqHighs && last.high > eqHighs * (1 + 0.003)) {
             if (last.close < eqHighs && last.volume >= indicators.volumeSma * 1.5) {
-                const deltaCurrent = (last.close - last.open) / (last.high - last.low);
-                if (deltaCurrent < 0) {
+                const range = last.high - last.low;
+                const deltaRatio = range > 0 ? (last.close - last.open) / range : 0;
+                if (deltaRatio < -0.3) {
                     return {
                         strategyName: this.name,
                         direction: SignalDirection.SHORT,
@@ -78,9 +81,9 @@ export class EnhancedLiquiditySweepStrategy implements Strategy {
                         suggestedSl: last.high + (indicators.atr * 0.2),
                         confidence: 88,
                         reasons: [
-                            'Equal Highs liquidity pool identifies on 1h',
-                            'Aggressive sweep (>0.3%) with volume reclaim',
-                            'Market structure maintained (Reclaim of structural high)'
+                            `Equal Highs liquidity pool (${eqHighs.toFixed(4)}) on 1h swept`,
+                            'Volume reclaim (≥1.5x avg)',
+                            'Bearish close with strong delta'
                         ],
                         expireMinutes: 90
                     };
