@@ -44,11 +44,18 @@ export class EmaVwapPullbackStrategy implements Strategy {
             if (!isBullishEngulfing && !isPinBar) return null;
 
             if (last.volume >= indicators.volumeSma * 1.2) {
+                // LIMIT at EMA21 — the actual pullback level. Last candle bounced off it
+                // already; we want to enter on the next pullback, not chase the bounce.
+                const limitEntry = ema21;
+                // Tighter SL: just below the bounce wick, not all the way under EMA50.
+                const sl = last.low - (indicators.atr * 0.2);
                 return {
                     strategyName: this.name,
                     direction: SignalDirection.LONG,
-                    suggestedTarget: last.close + (indicators.atr * 3),
-                    suggestedSl: Math.min(last.low, ema50) - (indicators.atr * 0.2),
+                    orderType: 'LIMIT',
+                    suggestedEntry: limitEntry,
+                    suggestedTarget: limitEntry + (indicators.atr * 1.5),
+                    suggestedSl: sl,
                     confidence: 82,
                     reasons: [
                         'Strong 1h/15m trend alignment',
@@ -75,11 +82,15 @@ export class EmaVwapPullbackStrategy implements Strategy {
             if (!isBearishEngulfing && !isPinBar) return null;
 
             if (last.volume >= indicators.volumeSma * 1.2) {
+                const limitEntry = ema21;
+                const sl = last.high + (indicators.atr * 0.2);
                 return {
                     strategyName: this.name,
                     direction: SignalDirection.SHORT,
-                    suggestedTarget: last.close - (indicators.atr * 3),
-                    suggestedSl: Math.max(last.high, ema50) + (indicators.atr * 0.2),
+                    orderType: 'LIMIT',
+                    suggestedEntry: limitEntry,
+                    suggestedTarget: limitEntry - (indicators.atr * 1.5),
+                    suggestedSl: sl,
                     confidence: 82,
                     reasons: [
                         'Strong 1h/15m trend alignment',

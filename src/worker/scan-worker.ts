@@ -193,7 +193,17 @@ export class ScanWorker {
                     if (score >= config.bot.minSignalScore) {
                         if (!dedupStore.isCooldown(symbol, candidate.strategyName, candidate.direction)) {
                             const leverageSuggestion = tradeExecutor.calculateLeverage(levels.riskPercent);
-                            
+
+                            // ─── Filter: leveraged-loss hard cap ───
+                            // calculateLeverage returns 0 when even min leverage × SL distance would
+                            // exceed config.bot.maxLeveragedLossPct (i.e. the SL is too wide for the
+                            // current leverage range to keep losses bounded).
+                            if (leverageSuggestion <= 0) {
+                                const projected = levels.riskPercent * tradeExecutor.getMinLeverage();
+                                logger.info(`[REJECTED RISK CAP] ${symbol} ${candidate.strategyName}: SL ${levels.riskPercent.toFixed(2)}% × min lev = ${projected.toFixed(1)}% > cap ${config.bot.maxLeveragedLossPct}%`);
+                                continue;
+                            }
+
                             // ─── Filter: minimum R:R ratio ───
                             // MIN_PROFIT_LEVERAGED is used as minimum R:R threshold (e.g. 1.5 = need at least 1.5R)
                             const minRR = config.bot.minProfitLeveraged;

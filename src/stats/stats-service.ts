@@ -45,6 +45,15 @@ const DEFAULT_THRESHOLDS: Record<string, Thresholds> = {
     'Volume Climax Reversal': { minN24: 10, softPnl: -12, softWR: 42, softHours: 6, hardPF: 0.82, hardLS: 4, unlockN: 8, unlockWR: 50, unlockPF: 1.0 },
     'EMA Cross Momentum':     { minN24: 12, softPnl: -14, softWR: 42, softHours: 12, hardPF: 0.82, hardLS: 4, unlockN: 8, unlockWR: 50, unlockPF: 1.0 },
     'Bollinger Band Reversal': { minN24: 12, softPnl: -14, softWR: 42, softHours: 6, hardPF: 0.82, hardLS: 4, unlockN: 8, unlockWR: 50, unlockPF: 1.0 },
+    // ─── OP / new strategies (added after the 10-day -434% incident) ───
+    // Tighter thresholds than mature strategies — these are unproven and the cap-on-loss
+    // shouldn't be the only safety net. Auto-pause on 4 losing trades in a row or PF < 0.7.
+    'OP EMA Ribbon + VWAP Pullback': { minN24: 8, softPnl: -8, softWR: 45, softHours: 12, hardPF: 0.70, hardLS: 4, unlockN: 6, unlockWR: 55, unlockPF: 1.0 },
+    'OP Bollinger Squeeze Breakout': { minN24: 8, softPnl: -8, softWR: 40, softHours: 12, hardPF: 0.70, hardLS: 4, unlockN: 6, unlockWR: 50, unlockPF: 1.0 },
+    'OP Range Mean-Reversion':       { minN24: 8, softPnl: -8, softWR: 45, softHours: 12, hardPF: 0.70, hardLS: 4, unlockN: 6, unlockWR: 55, unlockPF: 1.0 },
+    'OP Funding + OI Divergence':    { minN24: 6, softPnl: -6, softWR: 45, softHours: 12, hardPF: 0.70, hardLS: 3, unlockN: 5, unlockWR: 60, unlockPF: 1.1 },
+    'OP Enhanced Liquidity Sweep':   { minN24: 10, softPnl: -10, softWR: 45, softHours: 12, hardPF: 0.70, hardLS: 4, unlockN: 6, unlockWR: 55, unlockPF: 1.0 },
+
     // ─── Combos ───
     'Liquidity Trap Reversal': { minN24: 6, softPnl: -8, softWR: 45, softHours: 6,  hardPF: 0.9, hardLS: 3, unlockN: 5, unlockWR: 55 },
     'Trend Continuity':        { minN24: 8, softPnl: -10, softWR: 45, softHours: 12, hardPF: 0.9, hardLS: 4, unlockN: 6, unlockWR: 52 },

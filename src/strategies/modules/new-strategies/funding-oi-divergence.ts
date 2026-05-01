@@ -39,17 +39,22 @@ export class FundingOiDivergenceStrategy implements Strategy {
                 const isBearishEngulf = last.close < candles[candles.length - 2].open && last.close < last.open;
 
                 if (isShootingStar || isBearishEngulf) {
+                    // LIMIT at retest of the rejection wick — counter-trend setups need
+                    // confirmation by a retest, not blind market entry into the move.
+                    const limitEntry = (last.high + last.close) / 2;
                     return {
                         strategyName: this.name,
                         direction: SignalDirection.SHORT,
-                        suggestedTarget: last.close - (indicators.atr * 4),
+                        orderType: 'LIMIT',
+                        suggestedEntry: limitEntry,
+                        suggestedTarget: limitEntry - (indicators.atr * 4),
                         suggestedSl: last.high + (indicators.atr * 0.3),
                         confidence: 85,
                         reasons: [
                             `Extreme positive funding (${(funding.rate * 100).toFixed(4)}%)`,
                             `OI surge (${(oiChange * 100).toFixed(1)}%) without price follow-through`,
                             'Overbought 15m + 1h timeframes',
-                            'Bearish rejection pattern'
+                            'Bearish rejection — limit at wick retest'
                         ],
                         expireMinutes: 120
                     };
@@ -66,17 +71,20 @@ export class FundingOiDivergenceStrategy implements Strategy {
                 const isBullishEngulf = last.close > candles[candles.length - 2].open && last.close > last.open;
 
                 if (isHammer || isBullishEngulf) {
+                    const limitEntry = (last.low + last.close) / 2;
                     return {
                         strategyName: this.name,
                         direction: SignalDirection.LONG,
-                        suggestedTarget: last.close + (indicators.atr * 4),
+                        orderType: 'LIMIT',
+                        suggestedEntry: limitEntry,
+                        suggestedTarget: limitEntry + (indicators.atr * 4),
                         suggestedSl: last.low - (indicators.atr * 0.3),
                         confidence: 85,
                         reasons: [
                             `Extreme negative funding (${(funding.rate * 100).toFixed(4)}%)`,
                             `OI surge (${(oiChange * 100).toFixed(1)}%) without price follow-through`,
                             'Oversold 15m + 1h timeframes',
-                            'Bullish reclaim pattern'
+                            'Bullish reclaim — limit at wick retest'
                         ],
                         expireMinutes: 120
                     };

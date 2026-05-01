@@ -235,6 +235,23 @@ Current Target Risk: <b>${this.targetRiskPercent.toFixed(1)}%</b> per trade
             logger.info(`Target risk set to ${val.toFixed(1)}% via Telegram`);
         });
 
+        // ─── /losscap [N] — leveraged-loss hard cap ───
+        telegramNotifier.onCommand(/\/losscap(?:\s+([\d.]+))?/, (_msg: any, match: any) => {
+            const arg = match[1];
+            if (!arg) {
+                telegramNotifier.sendTextMessage(`🚧 <b>Leveraged-loss cap</b>\nCurrent: <b>${config.bot.maxLeveragedLossPct.toFixed(1)}%</b>\n\nSignals with <code>SL% × minLev > cap</code> are rejected.\n\n<i>Usage:</i> <code>/losscap 5.0</code>`);
+                return;
+            }
+            const val = parseFloat(arg);
+            if (isNaN(val) || val < 0.5 || val > 50) {
+                telegramNotifier.sendTextMessage('❌ Cap must be between 0.5% and 50%');
+                return;
+            }
+            config.bot.maxLeveragedLossPct = val;
+            telegramNotifier.sendTextMessage(`🚧 Leveraged-loss cap set to <b>${val.toFixed(1)}%</b>`);
+            logger.info(`Leveraged-loss cap set to ${val.toFixed(1)}% via Telegram`);
+        });
+
         // ─── 🚫 Монеты ───
         telegramNotifier.onCommand(/(\/coins|🚫 Монеты)/, () => {
             const disabled = universeLoader.getDisabledSymbols();
@@ -330,27 +347,42 @@ ${list}
         return Date.now() - lastSl < SL_COOLDOWN_MS;
     }
 
+    getMinLeverage(): number {
+        return this.leverageConfig.mode === 'fixed'
+            ? this.leverageConfig.fixedValue
+            : this.leverageConfig.minValue;
+    }
+
     /**
-     * Calculate leverage based on current config and stop-loss distance
+     * Calculate leverage based on current config and stop-loss distance.
+     * Returns 0 to signal "reject this trade" when the SL is so wide that even the
+     * minimum allowed leverage would breach config.bot.maxLeveragedLossPct.
      */
     calculateLeverage(slDistancePercent: number): number {
+        const maxLossPct = config.bot.maxLeveragedLossPct;
+        const slPct = Math.max(slDistancePercent, 0.0001);
+
         if (this.leverageConfig.mode === 'fixed') {
-            return this.leverageConfig.fixedValue;
+            const lev = this.leverageConfig.fixedValue;
+            return slPct * lev > maxLossPct ? 0 : lev;
         }
-        // Dynamic: Leverage = Target Risk / SL Distance Percent
-        // Example: SL is 0.5% away. We want to risk 1.0%. Leverage = 1.0 / 0.5 = x2
-        // Wait, standard perp sizing: If price moves 0.5%, and we have x20 leverage, our PNL is -10%. 
-        // We want SL to equal targetRiskPercent.
-        // Therefore, Leverage = targetRiskPercent / slDistancePercent.
-        // e.g. targetRisk 1.0%, slDistance = 0.5%. Leverage = 1 / 0.5 = x2... no wait.
-        // Position size * SL distance % = Target Risk % of Account
-        // If we use 100% of our account * (1 / Leverage)...
-        // Pnl% at StopLoss should be EXACTLY `targetRiskPercent`.
-        // So: targetRiskPercent = slDistancePercent * Leverage
-        // Leverage = targetRiskPercent / slDistancePercent
-        const targetLeverage = (this.targetRiskPercent / (slDistancePercent + 0.0001)); 
-        
-        return Math.max(this.leverageConfig.minValue, Math.min(this.leverageConfig.maxValue, Math.round(targetLeverage)));
+
+        // Dynamic: aim for slPct * leverage ≈ targetRiskPercent.
+        const targetLeverage = this.targetRiskPercent / slPct;
+        let lev = Math.round(targetLeverage);
+
+        // Clamp into configured corridor first.
+        lev = Math.max(this.leverageConfig.minValue, Math.min(this.leverageConfig.maxValue, lev));
+
+        // Hard cap on actual leveraged loss. If even minValue × slPct breaches the cap,
+        // the trade is unsafe at any allowed leverage — reject it.
+        if (slPct * lev > maxLossPct) {
+            const safeLev = Math.floor(maxLossPct / slPct);
+            if (safeLev < this.leverageConfig.minValue) return 0;
+            lev = safeLev;
+        }
+
+        return lev;
     }
 
     /**

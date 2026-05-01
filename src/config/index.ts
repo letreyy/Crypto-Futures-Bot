@@ -28,6 +28,11 @@ export const config = {
     minProfitLeveraged: parseFloat(process.env.MIN_PROFIT_LEVERAGED || '1.6'), // minimum R:R ratio
     minTpDistancePct: parseFloat(process.env.MIN_TP_DISTANCE_PCT || '0.8'), // raised from 0.5% — fees+slippage erode smaller moves
     targetRiskPercent: parseFloat(process.env.TARGET_RISK_PERCENT || '1.0'),
+    // Hard cap on leveraged loss per trade (slDistancePct × leverage). If even at the
+    // configured min leverage the projected loss would exceed this cap, the signal is
+    // rejected — stops the min-leverage clamp from inflating big-SL trades into 20%+
+    // blowouts on high-ATR alts.
+    maxLeveragedLossPct: parseFloat(process.env.MAX_LEVERAGED_LOSS_PCT || '5.0'),
     maxConcurrentTrades: parseInt(process.env.MAX_CONCURRENT_TRADES || '10'),
     klinesLimit: 600
   },

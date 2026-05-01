@@ -65,11 +65,13 @@ export class BollingerSqueezeStrategy implements Strategy {
 
         // ─── LONG BREAKOUT ───
         if (last.close > indicators.bbUpper && momentum > 0 && last.volume >= indicators.volumeSma * 1.5) {
+            // Tighter SL behind the breakout candle low (was bbMid — far too wide for
+            // a 33% WR strategy). TP shrunk from 4×ATR to 2.5×ATR so TP1 fills more often.
             return {
                 strategyName: this.name,
                 direction: SignalDirection.LONG,
-                suggestedTarget: last.close + (indicators.atr * 4),
-                suggestedSl: indicators.bbMid - (indicators.atr * 0.2),
+                suggestedTarget: last.close + (indicators.atr * 2.5),
+                suggestedSl: last.low - (indicators.atr * 0.2),
                 confidence: 75,
                 reasons: [
                     'TTM/width Squeeze just released',
@@ -85,8 +87,8 @@ export class BollingerSqueezeStrategy implements Strategy {
             return {
                 strategyName: this.name,
                 direction: SignalDirection.SHORT,
-                suggestedTarget: last.close - (indicators.atr * 4),
-                suggestedSl: indicators.bbMid + (indicators.atr * 0.2),
+                suggestedTarget: last.close - (indicators.atr * 2.5),
+                suggestedSl: last.high + (indicators.atr * 0.2),
                 confidence: 75,
                 reasons: [
                     'TTM/width Squeeze just released',
