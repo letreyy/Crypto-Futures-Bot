@@ -45,11 +45,12 @@ export class BollingerSqueezeStrategy implements Strategy {
 
         const bbWidth = (indicators.bbUpper - indicators.bbLower) / indicators.bbMid * 100;
         const sortedWidths = [...widths].sort((a, b) => a - b);
-        const p20 = sortedWidths[Math.floor(sortedWidths.length * 0.2)] ?? bbWidth;
+        // Relaxed from p20 → p25: only 2 trades in the last week was too sparse.
+        const p25 = sortedWidths[Math.floor(sortedWidths.length * 0.25)] ?? bbWidth;
 
-        // 1. Recent squeeze requirement: prior closed candle's width should be in bottom 20%
+        // 1. Recent squeeze requirement: prior closed candle's width should be in bottom 25%
         const prevWidth = widths[widths.length - 1] ?? bbWidth;
-        const wasSqueezed = prevWidth <= p20;
+        const wasSqueezed = prevWidth <= p25;
 
         // 2. TTM Squeeze alignment
         const kcUpper = indicators.bbMid + (1.5 * indicators.atr);
@@ -58,8 +59,8 @@ export class BollingerSqueezeStrategy implements Strategy {
 
         if (!wasSqueezed && !wasTTMSqueezed) return null;
 
-        // 3. Breakout must be FRESH: current width EXPANDING vs previous
-        if (bbWidth <= prevWidth * 1.05) return null;
+        // 3. Breakout must be FRESH: current width expanding ≥3% vs previous (relaxed from 5%).
+        if (bbWidth <= prevWidth * 1.03) return null;
 
         const momentum = last.close - indicators.bbMid;
 
