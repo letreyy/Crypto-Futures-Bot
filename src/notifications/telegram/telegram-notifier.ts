@@ -5,6 +5,11 @@ import { FinalSignal, StrategyContext } from '../../core/types/bot-types.js';
 import { SignalDirection } from '../../core/constants/enums.js';
 import { ChartGenerator } from './chart-generator.js';
 
+/** Escape special HTML characters for Telegram HTML parse mode */
+function escHtml(text: string): string {
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 // Mute the node-telegram-bot-api deprecation warning
 process.env.NTBA_FIX_350 = '1';
 
@@ -133,7 +138,7 @@ export class TelegramNotifier {
 
 📊 <b>Strategy:</b> ${s.strategyName}
 ⭐ <b>Score:</b> ${s.score}/100 (${s.confidenceLabel})
-📈 <b>Regime:</b> ${s.regime.type} (${s.regime.description})${contextStats}
+📈 <b>Regime:</b> ${s.regime.type} (${escHtml(s.regime.description)})${contextStats}
 
 📍 <b>${s.orderType || 'MARKET'} Entry:</b> <code>${s.levels.entry.toFixed(4)}</code>
 🛑 <b>Stop Loss:</b> <code>${s.levels.sl.toFixed(4)}</code> (-${(s.levels.riskPercent * s.leverageSuggestion).toFixed(1)}%)
@@ -146,7 +151,7 @@ export class TelegramNotifier {
 💰 <b>Risk/Reward:</b> 1:${s.levels.rrRatio}
 
 📋 <b>Reasons:</b>
-${s.reasons.map((r: any) => `• ${r}`).join('\n')}
+${s.reasons.map((r: any) => `• ${escHtml(String(r))}`).join('\n')}
 
 ⏰ <i>${new Date(s.timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'Europe/Moscow' })} | Valid for: ${s.expireMinutes}m</i>`;
     }
