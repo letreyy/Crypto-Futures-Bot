@@ -18,6 +18,16 @@ import { CombinationEngine } from '../strategies/combination-engine.js';
 import { statsService } from '../stats/stats-service.js';
 import { TelemetryLogger } from './telemetry-logger.js';
 
+// Non-crypto assets that trade on Binance Futures but have completely different
+// liquidity/volatility profiles. Crypto strategies (liquidity sweeps, order blocks)
+// fail catastrophically on these — 8 trades on XAUUSDT+PAXGUSDT produced -28.41%.
+const NON_CRYPTO_BLACKLIST = new Set([
+    'XAUUSDT', 'XAGUSDT', 'PAXGUSDT',           // Precious metals
+    'TSLAUSDT', 'NVDAUSDT', 'MSTRUSDT',           // US stocks
+    'AAPLUSDT', 'GOOGLUSDT', 'AMZNUSDT', 'METAUSDT', // More stocks
+    'CABORUSDT', 'NFLXUSDT',
+]);
+
 export class ScanWorker {
     private isRunning: boolean = false;
     // 1h kline cache per symbol — refreshed every 10 minutes (1h candles don't change within 10m).
@@ -83,6 +93,9 @@ export class ScanWorker {
             if (!this.isRunning) break;
 
             try {
+                // Skip non-crypto assets (precious metals, stocks)
+                if (NON_CRYPTO_BLACKLIST.has(symbol)) continue;
+
                 // Fetch candles
                 const candles = await binanceClient.getKlines(symbol, '15m', config.bot.klinesLimit);
                 if (!candles || candles.length < 200) continue;
@@ -264,6 +277,15 @@ export class ScanWorker {
                         const MAX_DIRECTIONAL = 3; // Hardcoded for safety, can be moved to config
                         if (directionalCount >= MAX_DIRECTIONAL) {
                             logger.info(`[MAX DIRECTIONAL REACHED] Ignoring ${symbol} ${finalSignal.direction}. Already have ${directionalCount}/${MAX_DIRECTIONAL}`);
+                            continue;
+                        }
+
+                        // 2b. Per-strategy concentration limit — prevent a single strategy from
+                        // monopolizing all trade slots (Liquidity Sweep was 80% of all trades)
+                        const MAX_PER_STRATEGY = 3;
+                        const strategyCount = tradeExecutor.getActiveCountByStrategy(finalSignal.strategyName);
+                        if (strategyCount >= MAX_PER_STRATEGY) {
+                            logger.info(`[STRATEGY CAP] ${symbol} ${finalSignal.strategyName}: already ${strategyCount}/${MAX_PER_STRATEGY} active`);
                             continue;
                         }
 

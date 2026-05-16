@@ -61,7 +61,12 @@ export class ScoringEngine {
         }
 
         // ─── Liquidity sweep context ───
-        if (ctx.liquidity.isWickSweep) score += config.weights.liquidityContext;
+        // Liquidity-based strategies (Liquidity Sweep, Enhanced LS) always have isWickSweep=true
+        // by definition — giving them the full +20 bonus is tautological and inflates scores.
+        const isLiquidityStrategy = candidate.strategyName.includes('Liquidity');
+        if (ctx.liquidity.isWickSweep) {
+            score += isLiquidityStrategy ? 5 : config.weights.liquidityContext;
+        }
 
         // ─── Funding: direction-aware, meaningful threshold ───
         // 0.05% / 8h = ~0.000625 -- that's the actual "extreme" level.

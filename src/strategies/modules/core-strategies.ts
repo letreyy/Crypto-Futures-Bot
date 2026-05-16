@@ -83,11 +83,19 @@ export class LiquiditySweepStrategy implements Strategy {
         // Volume must be higher than average to validate the sweep and reclaim
         if (last.volume <= indicators.volumeSma * 1.2) return null;
 
+        // ─── Filter: skip ultra-volatile / non-crypto assets (XAUUSDT, PAXGUSDT etc.) ───
+        // These have ATR% > 3% where swept levels are meaningless.
+        if (indicators.atr / last.close > 0.03) return null;
+
         if (liquidity.sweptLow && liquidity.reclaimedLevel && liquidity.localRangeLow) {
             // Liquidity sweep IS a counter-trend trade — don't require price > EMA200.
             // Just reject if EMA20 is catastrophically below EMA200 (deep bear, sweeps fail).
             if (indicators.ema20 < indicators.ema200 * 0.95) return null;
             if (indicators.rsi > 65) return null; // Already bounced too much
+
+            // ─── HTF trend filter for LONG: don't buy dips in a 1h downtrend ───
+            // LONG WR was 20% without this — most sweeps in downtrends just keep going.
+            if (ctx.h1Indicators && ctx.h1Indicators.ema50 < ctx.h1Indicators.ema200) return null;
 
             // SL behind the wick that swept (the absolute low of recent candles)
             const sweepWickLow = Math.min(...candles.slice(-5).map(c => c.low));
@@ -101,7 +109,7 @@ export class LiquiditySweepStrategy implements Strategy {
                 orderType: 'LIMIT',
                 suggestedEntry: liquidity.localRangeLow, // Retest of the swept level
                 suggestedTarget: liquidity.localRangeHigh || (liquidity.localRangeLow + (liquidity.localRangeLow - sweepWickLow) * 4), 
-                suggestedSl: sweepWickLow - (indicators.atr * 0.1), 
+                suggestedSl: sweepWickLow - (indicators.atr * 0.5), 
                 confidence: 85,
                 reasons: [
                     'Swing low sweep with volume', 
@@ -115,6 +123,9 @@ export class LiquiditySweepStrategy implements Strategy {
             if (indicators.ema20 > indicators.ema200 * 1.05) return null;
             if (indicators.rsi < 35) return null;
 
+            // ─── HTF trend filter for SHORT: don't short bounces in a 1h uptrend ───
+            if (ctx.h1Indicators && ctx.h1Indicators.ema50 > ctx.h1Indicators.ema200) return null;
+
             // SL behind the wick that swept (the absolute high of recent candles)
             const sweepWickHigh = Math.max(...candles.slice(-5).map(c => c.high));
 
@@ -126,7 +137,7 @@ export class LiquiditySweepStrategy implements Strategy {
                 orderType: 'LIMIT',
                 suggestedEntry: liquidity.localRangeHigh, // Retest of the swept level
                 suggestedTarget: liquidity.localRangeLow || (liquidity.localRangeHigh - (sweepWickHigh - liquidity.localRangeHigh) * 4),
-                suggestedSl: sweepWickHigh + (indicators.atr * 0.1),
+                suggestedSl: sweepWickHigh + (indicators.atr * 0.5),
                 confidence: 85,
                 reasons: [
                     'Swing high sweep with volume', 

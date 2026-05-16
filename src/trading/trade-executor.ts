@@ -330,6 +330,13 @@ ${list}
     }
 
     /**
+     * Get number of active/pending trades for a specific strategy
+     */
+    getActiveCountByStrategy(strategyName: string): number {
+        return this.activeTrades.filter(t => t.strategyName === strategyName).length;
+    }
+
+    /**
      * Checks if a strategy is disabled (manually or by circuit breaker)
      */
     isStrategyDisabled(strategyName: string): boolean {
@@ -445,6 +452,24 @@ ${list}
             }
 
             // ─── Check TP levels (ladder: 4 steps: 35%, 35%, 15%, 15%) ───
+            // ─── Pre-TP1 partial trailing: reduce SL risk when price is 50%+ to TP1 ───
+            if (trade.tpHit === 0 && !isEntryCandle) {
+                const halfwayToTp1 = isLong
+                    ? trade.entryPrice + (trade.tp[0] - trade.entryPrice) * 0.5
+                    : trade.entryPrice - (trade.entryPrice - trade.tp[0]) * 0.5;
+                const reachedHalfway = isLong ? lastCandle.high >= halfwayToTp1 : lastCandle.low <= halfwayToTp1;
+                
+                if (reachedHalfway) {
+                    // Tighten SL: cut max loss in half (move SL 50% closer to entry)
+                    const tighterSl = isLong
+                        ? trade.entryPrice - (trade.entryPrice - trade.sl) * 0.5
+                        : trade.entryPrice + (trade.sl - trade.entryPrice) * 0.5;
+                    // Only tighten, never loosen
+                    if ((isLong && tighterSl > trade.sl) || (!isLong && tighterSl < trade.sl)) {
+                        trade.sl = tighterSl;
+                    }
+                }
+            }
             while (trade.tpHit < 4) {
                 const nextTp = trade.tp[trade.tpHit];
                 const tpReached = isEntryCandle
